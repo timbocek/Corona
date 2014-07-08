@@ -57,11 +57,19 @@ public class ClockFaceActivity extends Activity {
         Time sunriseTime = sunriseTimeCalc.getSunriseTime();
         Time sunsetTime = sunriseTimeCalc.getSunsetTime();
 
-        sunriseTime.switchTimezone(now.timezone);
-        sunsetTime.switchTimezone(now.timezone);
+        if (sunriseTime != null) {
+            sunriseTime.switchTimezone(now.timezone);
+            mSunriseTextView.setText(sunriseTime.format("%H:%M:%S"));
+        } else {
+            mSunriseTextView.setText("Enjoy your SAD :(");
+        }
 
-        mSunriseTextView.setText(sunriseTime.format("%H:%M:%S"));
-        mSunsetTextView.setText(sunriseTime.format("%H:%M:%S"));
+        if (sunsetTime != null) {
+            sunsetTime.switchTimezone(now.timezone);
+            mSunsetTextView.setText(sunriseTime.format("%H:%M:%S"));
+        } else {
+            mSunriseTextView.setText("Looks like the land of the midnight sun!");
+        }
 
     }
 
