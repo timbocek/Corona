@@ -14,8 +14,8 @@ import org.joda.time.LocalTime;
 
 public class ClockFaceActivity extends Activity {
 
-    private static final double SEATTLE_LAT = 47.609722;
-    private static final double SEATTLE_LONG = -122.333056;
+    private static final double SEATTLE_LAT = 47.68;
+    private static final double SEATTLE_LONG = -122.21;
 
     private TextView mTimeTextView;
     private TextView mSunriseTextView;
