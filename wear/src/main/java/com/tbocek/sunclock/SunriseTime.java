@@ -114,7 +114,7 @@ public class SunriseTime {
         while (angle >= 360)
             angle -= 360;
         while (angle < 0)
-            angle += 0;
+            angle += 360;
         return angle;
     }
 
@@ -127,7 +127,7 @@ public class SunriseTime {
         while (hour >= 24)
             hour -= 24;
         while (hour < 0)
-            hour += 0;
+            hour += 24;
         return hour;
     }
 
