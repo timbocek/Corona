@@ -6,10 +6,15 @@ import android.support.wearable.view.WatchViewStub;
 import android.text.format.Time;
 import android.widget.TextView;
 
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
+
+import java.util.Locale;
 
 
 public class ClockFaceActivity extends Activity {
@@ -58,11 +63,13 @@ public class ClockFaceActivity extends Activity {
     private void resetSunriseAndSunsetTimes() {
         DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
         mLastSunriseUpdateTime = currentTime;
-        SunriseTime sunriseTimeCalc = new SunriseTime(currentTime, SEATTLE_LAT, SEATTLE_LONG,
-                SunriseTime.CIVIL_ZENITH);
+        Location location = new Location(SEATTLE_LAT, SEATTLE_LONG);
+        SunriseSunsetCalculator calc = new SunriseSunsetCalculator(location, "America/Los_Angeles");
 
-        DateTime sunriseTime = sunriseTimeCalc.getSunriseTime();
-        DateTime sunsetTime = sunriseTimeCalc.getSunsetTime();
+        DateTime sunriseTime = new DateTime(calc.getOfficialSunriseCalendarForDate(
+                currentTime.toCalendar(Locale.US)));
+        DateTime sunsetTime = new DateTime(calc.getOfficialSunsetCalendarForDate(
+                currentTime.toCalendar(Locale.US)));
 
         if (sunriseTime != null) {
             mSunriseTextView.setText(sunriseTime.toString("HH:mm:ss z"));
