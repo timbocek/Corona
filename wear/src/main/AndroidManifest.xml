@@ -15,6 +15,7 @@
             android:name=".ClockFaceActivity"
             android:label="@string/app_name"
             android:allowEmbedded="true" >
+            <meta-data android:name="com.google.android.clockwork.home.preview" android:resource="@drawable/ic_launcher" />
             <!-- Intent filter to make the activity show up in the watchface choices -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
