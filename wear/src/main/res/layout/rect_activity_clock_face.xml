@@ -8,8 +8,20 @@
     tools:deviceIds="wear_square">
 
     <TextView
-        android:id="@+id/text"
+        android:id="@+id/watch_face_time_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello_square" />
+        android:text="Time" />
+
+    <TextView
+        android:id="@+id/watch_face_sunrise_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sunrise" />
+
+    <TextView
+        android:id="@+id/watch_face_sunset_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sunset" />
 </LinearLayout>

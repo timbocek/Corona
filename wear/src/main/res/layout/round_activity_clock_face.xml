@@ -7,10 +7,25 @@
     tools:deviceIds="wear_round">
 
     <TextView
-        android:id="@+id/text"
+        android:id="@+id/watch_face_time_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Time"
+        android:layout_centerInParent="true"/>
+
+    <TextView
+        android:id="@+id/watch_face_sunrise_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sunrise"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="@string/hello_round" />
+        android:layout_below="@id/watch_face_time_text"/>
+
+    <TextView
+        android:id="@+id/watch_face_sunset_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sunset"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/watch_face_sunrise_text"/>
 </RelativeLayout>
