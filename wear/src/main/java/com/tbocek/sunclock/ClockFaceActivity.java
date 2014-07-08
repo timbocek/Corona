@@ -28,18 +28,20 @@ public class ClockFaceActivity extends Activity {
                 mTimeTextView = (TextView) findViewById(R.id.watch_face_time_text);
                 mSunriseTextView = (TextView) findViewById(R.id.watch_face_sunrise_text);
                 mSunsetTextView = (TextView) findViewById(R.id.watch_face_sunset_text);
+                resetSunriseAndSunsetTimes();
+                timerThread.start();
             }
         });
     }
 
     @Override
     protected void onResume() {
-        resetSunriseAndSunsetTimes();
-        timerThread.start();
+        super.onResume();
     }
 
     @Override
     protected void onPause() {
+        super.onPause();
         try {
             timerThread.join();
         } catch (InterruptedException e) {
@@ -68,7 +70,7 @@ public class ClockFaceActivity extends Activity {
             sunsetTime.switchTimezone(now.timezone);
             mSunsetTextView.setText(sunriseTime.format("%H:%M:%S"));
         } else {
-            mSunriseTextView.setText("Looks like the land of the midnight sun!");
+            mSunsetTextView.setText("Looks like the land of the midnight sun!");
         }
 
     }
