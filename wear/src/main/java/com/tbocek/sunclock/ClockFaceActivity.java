@@ -14,6 +14,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 
@@ -66,19 +67,19 @@ public class ClockFaceActivity extends Activity {
         Location location = new Location(SEATTLE_LAT, SEATTLE_LONG);
         SunriseSunsetCalculator calc = new SunriseSunsetCalculator(location, "America/Los_Angeles");
 
-        DateTime sunriseTime = new DateTime(calc.getOfficialSunriseCalendarForDate(
-                currentTime.toCalendar(Locale.US)));
-        DateTime sunsetTime = new DateTime(calc.getOfficialSunsetCalendarForDate(
-                currentTime.toCalendar(Locale.US)));
+        Calendar sunriseTime = calc.getOfficialSunriseCalendarForDate(
+                currentTime.toCalendar(Locale.US));
+        Calendar sunsetTime = calc.getOfficialSunsetCalendarForDate(
+                currentTime.toCalendar(Locale.US));
 
         if (sunriseTime != null) {
-            mSunriseTextView.setText(sunriseTime.toString("HH:mm:ss z"));
+            mSunriseTextView.setText(new DateTime(sunriseTime).toString("HH:mm:ss z"));
         } else {
             mSunriseTextView.setText("Enjoy your SAD :(");
         }
 
         if (sunsetTime != null) {
-            mSunsetTextView.setText(sunsetTime.toString("HH:mm:ss z"));
+            mSunsetTextView.setText(new DateTime(sunsetTime).toString("HH:mm:ss z"));
         } else {
             mSunsetTextView.setText("Looks like the land of the midnight sun!");
         }
