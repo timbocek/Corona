@@ -78,7 +78,7 @@ public class ClockFaceActivity extends Activity {
         }
 
         if (sunsetTime != null) {
-            mSunsetTextView.setText(sunriseTime.toString("HH:mm:ss z"));
+            mSunsetTextView.setText(sunsetTime.toString("HH:mm:ss z"));
         } else {
             mSunsetTextView.setText("Looks like the land of the midnight sun!");
         }
