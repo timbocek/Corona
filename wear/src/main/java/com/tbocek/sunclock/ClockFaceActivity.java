@@ -14,6 +14,7 @@ public class ClockFaceActivity extends Activity {
     private TextView mTimeTextView;
     private TextView mSunriseTextView;
     private TextView mSunsetTextView;
+    private Time mLastSunriseUpdateTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,22 @@ public class ClockFaceActivity extends Activity {
 
     @Override
     protected void onResume() {
+        resetSunriseAndSunsetTimes();
+        timerThread.start();
+    }
+
+    @Override
+    protected void onPause() {
+        try {
+            timerThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void resetSunriseAndSunsetTimes() {
         Time now = new Time();
+        mLastSunriseUpdateTime = now;
         now.setToNow();
         SunriseTime sunriseTimeCalc = new SunriseTime(now, SEATTLE_LAT, SEATTLE_LONG,
                 SunriseTime.CIVIL_ZENITH);
@@ -46,5 +62,31 @@ public class ClockFaceActivity extends Activity {
 
         mSunriseTextView.setText(sunriseTime.format("%H:%M:%S"));
         mSunsetTextView.setText(sunriseTime.format("%H:%M:%S"));
+
     }
+
+    private Thread timerThread = new Thread() {
+        @Override
+        public void run() {
+            while (true) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Time now = new Time();
+                        now.setToNow();
+                        mTimeTextView.setText(now.format("%H:%M:%S"));
+                        if (mLastSunriseUpdateTime.yearDay != now.yearDay) {
+                            resetSunriseAndSunsetTimes();
+                        }
+                    }
+                });
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    break;
+                }
+            }
+        }
+    };
 }
