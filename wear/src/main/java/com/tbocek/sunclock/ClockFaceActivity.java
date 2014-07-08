@@ -6,6 +6,10 @@ import android.support.wearable.view.WatchViewStub;
 import android.text.format.Time;
 import android.widget.TextView;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+
 
 public class ClockFaceActivity extends Activity {
 
@@ -82,10 +86,9 @@ public class ClockFaceActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Time now = new Time();
-                        now.setToNow();
-                        mTimeTextView.setText(now.format("%H:%M:%S"));
-                        if (mLastSunriseUpdateTime.yearDay != now.yearDay) {
+                        DateTime currentTime = new DateTime();
+                        mTimeTextView.setText(currentTime.toString("HH:mm:ss"));
+                        if (mLastSunriseUpdateTime.yearDay != currentTime.getDayOfYear()) {
                             resetSunriseAndSunsetTimes();
                         }
                     }
