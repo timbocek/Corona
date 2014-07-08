@@ -80,7 +80,7 @@ public class SunriseTime {
         double localHourAngleCos = (cos(mZenith) - (declinationSin * sin(mLatitude))) /
                 (declinationCos * cos(mLatitude));
 
-        if (localHourAngleCos > 1 || localHourAngleCos < 1) return null; // sun never rises
+        if (localHourAngleCos > 1 || localHourAngleCos < -1) return null; // sun never rises
 
         // Finish calculating local hour angle and convert to hours.
         double localHourAngle = arccos(localHourAngleCos);
