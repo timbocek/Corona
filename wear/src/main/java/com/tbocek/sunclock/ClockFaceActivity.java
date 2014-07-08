@@ -7,6 +7,7 @@ import android.text.format.Time;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 
@@ -55,7 +56,7 @@ public class ClockFaceActivity extends Activity {
     }
 
     private void resetSunriseAndSunsetTimes() {
-        DateTime currentTime = new DateTime();
+        DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
         mLastSunriseUpdateTime = currentTime;
         SunriseTime sunriseTimeCalc = new SunriseTime(currentTime, SEATTLE_LAT, SEATTLE_LONG,
                 SunriseTime.CIVIL_ZENITH);
@@ -84,7 +85,7 @@ public class ClockFaceActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        DateTime currentTime = new DateTime();
+                        DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
                         mTimeTextView.setText(currentTime.toString("HH:mm:ss z"));
                         if (mLastSunriseUpdateTime.getDayOfYear() != currentTime.getDayOfYear()) {
                             resetSunriseAndSunsetTimes();

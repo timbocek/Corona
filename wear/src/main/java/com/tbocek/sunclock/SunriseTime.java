@@ -102,7 +102,8 @@ public class SunriseTime {
         int hours = (meanTimeInSeconds) / 3600;
 
         return new DateTime(mCurrentTime.getYear(), mCurrentTime.getMonthOfYear(),
-                mCurrentTime.getDayOfMonth(), hours, minutes, seconds);
+                mCurrentTime.getDayOfMonth(), hours, minutes, seconds)
+                .toDateTime(mCurrentTime.getZone());
     }
 
     /**
