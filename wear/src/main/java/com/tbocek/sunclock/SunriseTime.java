@@ -2,6 +2,8 @@ package com.tbocek.sunclock;
 
 import android.text.format.Time;
 
+import org.joda.time.DateTime;
+
 /**
  * Class to compute sunrise and sunset times.
  *
@@ -15,12 +17,12 @@ public class SunriseTime {
     public final static double NAUTICAL_ZENITH = 102;
     public final static double ASTRONOMICAL_ZENITH = 108;
 
-    private final Time mCurrentTime;
+    private final DateTime mCurrentTime;
     private final double mLatitude;
     private final double mLongitude;
     private final double mZenith;
 
-    public SunriseTime(Time now, double latitude, double longitude, double zenith) {
+    public SunriseTime(DateTime now, double latitude, double longitude, double zenith) {
         mCurrentTime = now;
         mLatitude = latitude;
         mLongitude = longitude;
@@ -32,7 +34,7 @@ public class SunriseTime {
      * @return Time object containing the sunrise time, or null if the sun will not rise at the
      *     specified location.
      */
-    public Time getSunriseTime() {
+    public DateTime getSunriseTime() {
         return getSunriseOrSunsetTime(true);
     }
 
@@ -41,19 +43,19 @@ public class SunriseTime {
      * @return Time object containing the sunrise time, or null if the sun will not set at the
      *     specified location.
      */
-    public Time getSunsetTime() {
+    public DateTime getSunsetTime() {
         return getSunriseOrSunsetTime(false);
     }
 
-    private Time getSunriseOrSunsetTime(boolean isSunrise) {
+    private DateTime getSunriseOrSunsetTime(boolean isSunrise) {
         // Convert the longitude to hour value and calculate an approximate time.
         double longitudeHour = mLongitude / 15;
 
         double approximateTime;
         if (isSunrise) {
-            approximateTime = mCurrentTime.yearDay + ((6 - longitudeHour) / 24);
+            approximateTime = mCurrentTime.getDayOfYear() + ((6 - longitudeHour) / 24);
         } else {
-            approximateTime = mCurrentTime.yearDay + ((18 - longitudeHour) / 24);
+            approximateTime = mCurrentTime.getDayOfYear() + ((18 - longitudeHour) / 24);
         }
 
         double meanAnomaly = (0.9856 * approximateTime) - 3.289;
@@ -99,10 +101,8 @@ public class SunriseTime {
         int minutes = (meanTimeInSeconds / 60) % 60;
         int hours = (meanTimeInSeconds) / 3600;
 
-        Time result = new Time();
-        result.set(seconds, minutes, hours, mCurrentTime.monthDay, mCurrentTime.month,
-                mCurrentTime.year);
-        return result;
+        return new DateTime(mCurrentTime.getYear(), mCurrentTime.getMonthOfYear(),
+                mCurrentTime.getDayOfMonth(), hours, minutes, seconds);
     }
 
     /**
