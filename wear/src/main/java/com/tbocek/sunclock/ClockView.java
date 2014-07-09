@@ -38,7 +38,7 @@ public class ClockView extends View {
 
         mHourHandPaint = new Paint();
         mHourHandPaint.setColor(Color.BLACK);
-        mHourHandPaint.setStrokeWidth(3.0f);
+        mHourHandPaint.setStrokeWidth(4.0f);
         mHourHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mMinuteHandPaint = new Paint();
@@ -94,19 +94,19 @@ public class ClockView extends View {
                 TypedValue.COMPLEX_UNIT_PX, 5, dm);
 
         // Draw dots on every hour
-        for (int i = 0; i < 12; ++i) {
+        for (int i = 0; i < 24; ++i) {
 
-            float fraction = ((float)i) / 12;
+            float fraction = ((float)i) / 24;
 
             int destX = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
             int destY = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
             int dotRadius = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_PX, (i % 3 == 0) ? 4 : 2, dm);
+                    TypedValue.COMPLEX_UNIT_PX, (i % 6 == 0) ? 4 : 2, dm);
 
             c.drawCircle(destX, destY, dotRadius, mCirclePaint);
         }
 
-        drawHand(fractionOfDay(mTime), centerX, centerY, r, mHourHandPaint, c);
+        drawHand(fractionOfDay(mTime), centerX, centerY, (int)(r * 0.8), mHourHandPaint, c);
         drawHand(fractionOfHour(mTime), centerX, centerY, r, mMinuteHandPaint, c);
         drawHand(fractionOfDay(mSunriseTime), centerX, centerY, r, mSunriseSunsetHandPaint, c);
         drawHand(fractionOfDay(mSunsetTime), centerX, centerY, r, mSunriseSunsetHandPaint, c);
