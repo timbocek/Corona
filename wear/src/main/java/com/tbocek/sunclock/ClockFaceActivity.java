@@ -36,7 +36,7 @@ public class ClockFaceActivity extends Activity {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
 
-                mClockView = (ClockView) findViewById(R.id.clock_view);
+                mClockView = (ClockView) stub.findViewById(R.id.clock_view);
                 resetSunriseAndSunsetTimes();
                 timerThread.start();
             }
