@@ -1,18 +1,18 @@
 package com.tbocek.sunclock;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
-import android.text.format.Time;
-import android.widget.TextView;
 
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDateTime;
-import org.joda.time.LocalTime;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -26,6 +26,12 @@ public class ClockFaceActivity extends Activity {
     private ClockView mClockView;
     private DateTime mLastSunriseUpdateTime;
 
+    private IntentFilter mTimeTickFilter;
+    private IntentFilter mTimeChangedFilter;
+    private IntentFilter mTimeZoneChangedFilter;
+
+    private BroadcastReceiver mTimeUpdateReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,27 +41,36 @@ public class ClockFaceActivity extends Activity {
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-
                 mClockView = (ClockView) stub.findViewById(R.id.clock_view);
-                resetSunriseAndSunsetTimes();
-                timerThread.start();
+                updateTime();
             }
         });
+        initReceivers();
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // attach the time receiver to listen for time ticks.
+        this.registerReceiver(mTimeUpdateReceiver, mTimeTickFilter);
+        this.registerReceiver(mTimeUpdateReceiver, mTimeChangedFilter);
+        this.registerReceiver(mTimeUpdateReceiver, mTimeZoneChangedFilter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Traditionally this is done in the onPause.
+        // But since we are going to still get time updates
+        // when paused, we can unregister the receiver
+        this.unregisterReceiver(mTimeUpdateReceiver);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        try {
-            timerThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        updateTime();
     }
 
     private void resetSunriseAndSunsetTimes() {
@@ -78,27 +93,30 @@ public class ClockFaceActivity extends Activity {
         }
     }
 
-    private Thread timerThread = new Thread() {
-        @Override
-        public void run() {
-            while (true) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
-                        mClockView.setTime(currentTime);
-                        if (mLastSunriseUpdateTime.getDayOfYear() != currentTime.getDayOfYear()) {
-                            resetSunriseAndSunsetTimes();
-                        }
-                    }
-                });
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    break;
+    private void initReceivers() {
+        // create the intent filter for the time tick action
+        mTimeTickFilter = new IntentFilter(Intent.ACTION_TIME_TICK);
+        mTimeChangedFilter = new IntentFilter(Intent.ACTION_TIME_CHANGED);
+        mTimeZoneChangedFilter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
+
+        // create the receiver
+        mTimeUpdateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (Intent.ACTION_TIME_TICK.equals(intent.getAction())) {
+                    updateTime();
                 }
             }
+        };
+    }
+
+    private void updateTime() {
+        if (mClockView == null) return;
+        DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
+        mClockView.setTime(currentTime);
+        if (mLastSunriseUpdateTime == null ||
+                mLastSunriseUpdateTime.getDayOfYear() != currentTime.getDayOfYear()) {
+            resetSunriseAndSunsetTimes();
         }
-    };
+    }
 }
