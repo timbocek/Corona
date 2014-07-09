@@ -6,22 +6,9 @@
     android:orientation="vertical"
     tools:context=".ClockFaceActivity"
     tools:deviceIds="wear_square">
-
-    <TextView
-        android:id="@+id/watch_face_time_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Time" />
-
-    <TextView
-        android:id="@+id/watch_face_sunrise_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="sunrise" />
-
-    <TextView
-        android:id="@+id/watch_face_sunset_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="sunset" />
+    <com.tbocek.sunclock.ClockView
+        android:id = "@+id/clock_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"/>
 </LinearLayout>
