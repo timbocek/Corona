@@ -5,6 +5,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.View;
 
 import org.joda.time.DateTime;
@@ -14,13 +16,14 @@ import org.joda.time.DateTime;
  */
 public class ClockView extends View {
 
-    private DateTime mTime;
-    private DateTime mSunriseTime;
-    private DateTime mSunsetTime;
+    private DateTime mTime  = new DateTime(2014, 1, 1, 16, 20);
+    private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
+    private DateTime mSunsetTime = new DateTime(2014, 1, 1, 19, 00);
 
     private Paint mHourHandPaint;
     private Paint mMinuteHandPaint;
     private Paint mSunriseSunsetHandPaint;
+    private Paint mCirclePaint;
 
     public ClockView(Context context) {
         this(context, null, 0);
@@ -36,14 +39,21 @@ public class ClockView extends View {
         mHourHandPaint = new Paint();
         mHourHandPaint.setColor(Color.BLACK);
         mHourHandPaint.setStrokeWidth(2.0f);
+        mHourHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mMinuteHandPaint = new Paint();
         mMinuteHandPaint.setColor(Color.BLACK);
         mMinuteHandPaint.setStrokeWidth(1.0f);
+        mMinuteHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mSunriseSunsetHandPaint = new Paint();
         mSunriseSunsetHandPaint.setColor(Color.RED);
         mSunriseSunsetHandPaint.setStrokeWidth(1.0f);
+        mSunriseSunsetHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+
+        mCirclePaint = new Paint();
+        mCirclePaint.setColor(Color.GRAY);
+        mCirclePaint.setFlags(Paint.ANTI_ALIAS_FLAG);
     }
 
     public DateTime getTime() {
@@ -74,29 +84,53 @@ public class ClockView extends View {
     }
 
     public void onDraw(Canvas c) {
+        DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
+
         c.drawColor(Color.WHITE);
 
-        int centerX = c.getWidth() / 2;
-        int centerY = c.getHeight() / 2;
-        int r = Math.min(c.getWidth(), c.getHeight());
+        int centerX = getWidth() / 2;
+        int centerY = getHeight() / 2;
+        int r = Math.min(getWidth(), getHeight()) / 2 - (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_PX, 5, dm);
+
+        // Draw dots on every hour
+        for (int i = 0; i < 12; ++i) {
+
+            float fraction = ((float)i) / 12;
+
+            int destX = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
+            int destY = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
+            int dotRadius = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_PX, (i % 3 == 0) ? 4 : 2, dm);
+
+            c.drawCircle(destX, destY, dotRadius, mCirclePaint);
+        }
 
         drawHand(fractionOfDay(mTime), centerX, centerY, r, mHourHandPaint, c);
         drawHand(fractionOfHour(mTime), centerX, centerY, r, mMinuteHandPaint, c);
         drawHand(fractionOfDay(mSunriseTime), centerX, centerY, r, mSunriseSunsetHandPaint, c);
         drawHand(fractionOfDay(mSunsetTime), centerX, centerY, r, mSunriseSunsetHandPaint, c);
+
     }
 
     private double fractionOfDay(DateTime t) {
+        if (t == null) return 0;
         return ((double)t.getHourOfDay() + fractionOfHour(t)) / 24.0;
     }
 
     private double fractionOfHour(DateTime t) {
-        return ((double) t.getMinuteOfHour()) / 60.0;
+        if (t == null) return 0;
+        return ((double) t.getMinuteOfHour() + fractionOfMinute(t)) / 60.0;
+    }
+
+    private double fractionOfMinute(DateTime t) {
+        if (t == null) return 0;
+        return ((double) t.getSecondOfMinute()) / 60.0;
     }
 
     private void drawHand(double fraction, int centerX, int centerY, int r, Paint paint, Canvas c) {
-        int destX = centerX + r * (int) Math.cos(Math.PI / 2 - fraction * 2 * Math.PI);
-        int destY = centerY + r * (int) Math.sin(Math.PI / 2 - fraction * 2 * Math.PI);
+        int destX = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
+        int destY = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
 
         c.drawLine(centerX, centerY, destX, destY, paint);
     }

@@ -23,9 +23,7 @@ public class ClockFaceActivity extends Activity {
     private static final double SEATTLE_LAT = 47.68;
     private static final double SEATTLE_LONG = -122.21;
 
-    private TextView mTimeTextView;
-    private TextView mSunriseTextView;
-    private TextView mSunsetTextView;
+    private ClockView mClockView;
     private DateTime mLastSunriseUpdateTime;
 
     @Override
@@ -37,9 +35,8 @@ public class ClockFaceActivity extends Activity {
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-                mTimeTextView = (TextView) findViewById(R.id.watch_face_time_text);
-                mSunriseTextView = (TextView) findViewById(R.id.watch_face_sunrise_text);
-                mSunsetTextView = (TextView) findViewById(R.id.watch_face_sunset_text);
+
+                mClockView = (ClockView) findViewById(R.id.clock_view);
                 resetSunriseAndSunsetTimes();
                 timerThread.start();
             }
@@ -73,17 +70,12 @@ public class ClockFaceActivity extends Activity {
                 currentTime.toCalendar(Locale.US));
 
         if (sunriseTime != null) {
-            mSunriseTextView.setText(new DateTime(sunriseTime).toString("HH:mm:ss z"));
-        } else {
-            mSunriseTextView.setText("Enjoy your SAD :(");
+            mClockView.setSunriseTime(new DateTime(sunriseTime));
         }
 
         if (sunsetTime != null) {
-            mSunsetTextView.setText(new DateTime(sunsetTime).toString("HH:mm:ss z"));
-        } else {
-            mSunsetTextView.setText("Looks like the land of the midnight sun!");
+            mClockView.setSunsetTime(new DateTime(sunsetTime));
         }
-
     }
 
     private Thread timerThread = new Thread() {
@@ -94,7 +86,7 @@ public class ClockFaceActivity extends Activity {
                     @Override
                     public void run() {
                         DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
-                        mTimeTextView.setText(currentTime.toString("HH:mm:ss z"));
+                        mClockView.setTime(currentTime);
                         if (mLastSunriseUpdateTime.getDayOfYear() != currentTime.getDayOfYear()) {
                             resetSunriseAndSunsetTimes();
                         }
