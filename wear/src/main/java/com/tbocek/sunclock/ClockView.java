@@ -38,12 +38,12 @@ public class ClockView extends View {
 
         mHourHandPaint = new Paint();
         mHourHandPaint.setColor(Color.BLACK);
-        mHourHandPaint.setStrokeWidth(2.0f);
+        mHourHandPaint.setStrokeWidth(3.0f);
         mHourHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mMinuteHandPaint = new Paint();
         mMinuteHandPaint.setColor(Color.BLACK);
-        mMinuteHandPaint.setStrokeWidth(1.0f);
+        mMinuteHandPaint.setStrokeWidth(2.0f);
         mMinuteHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mSunriseSunsetHandPaint = new Paint();
