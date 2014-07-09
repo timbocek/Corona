@@ -91,7 +91,7 @@ public class ClockView extends View {
         int centerX = getWidth() / 2;
         int centerY = getHeight() / 2;
         int r = Math.min(getWidth(), getHeight()) / 2 - (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX, 5, dm);
+                TypedValue.COMPLEX_UNIT_PX, 10, dm);
 
         // Draw dots on every hour
         for (int i = 0; i < 24; ++i) {
@@ -100,8 +100,15 @@ public class ClockView extends View {
 
             int destX = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
             int destY = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
-            int dotRadius = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_PX, (i % 6 == 0) ? 4 : 2, dm);
+            int dotRadius;
+            if (i % 6 == 0) {
+                dotRadius = 6;
+            } else if (i % 2 == 0) {
+                dotRadius = 4;
+            } else {
+                dotRadius = 2;
+            }
+            dotRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dotRadius, dm);
 
             c.drawCircle(destX, destY, dotRadius, mCirclePaint);
         }
