@@ -4,6 +4,9 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -19,6 +22,9 @@ public class ClockView extends View {
     private DateTime mTime  = new DateTime(2014, 1, 1, 16, 20);
     private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
     private DateTime mSunsetTime = new DateTime(2014, 1, 1, 19, 00);
+    private DateTime mDawnTime = new DateTime(2014, 1, 1, 4, 30);
+    private DateTime mDuskTime = new DateTime(2014, 1, 1, 19, 30);
+
 
     private Paint mHourHandPaint;
     private Paint mMinuteHandPaint;
@@ -71,6 +77,7 @@ public class ClockView extends View {
 
     public void setSunriseTime(DateTime mSunriseTime) {
         this.mSunriseTime = mSunriseTime;
+        this.mDawnTime = mSunriseTime.minusMinutes(30);
         this.invalidate();
     }
 
@@ -80,6 +87,7 @@ public class ClockView extends View {
 
     public void setSunsetTime(DateTime mSunsetTime) {
         this.mSunsetTime = mSunsetTime;
+        this.mDuskTime = mSunriseTime.plusMinutes(30);
         this.invalidate();
     }
 
@@ -95,11 +103,7 @@ public class ClockView extends View {
 
         // Draw dots on every hour
         for (int i = 0; i < 24; ++i) {
-
-            float fraction = ((float)i) / 24;
-
-            int destX = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
-            int destY = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
+            Point dest = getPointOnCircle(((float)i) / 24, centerX, centerY, r);
             int dotRadius;
             if (i % 6 == 0) {
                 dotRadius = 6;
@@ -110,13 +114,15 @@ public class ClockView extends View {
             }
             dotRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dotRadius, dm);
 
-            c.drawCircle(destX, destY, dotRadius, mCirclePaint);
+            c.drawCircle(dest.x, dest.y, dotRadius, mCirclePaint);
         }
 
         drawHand(fractionOfDay(mTime), centerX, centerY, (int)(r * 0.8), mHourHandPaint, c);
         drawHand(fractionOfHour(mTime), centerX, centerY, r, mMinuteHandPaint, c);
-        drawHand(fractionOfDay(mSunriseTime), centerX, centerY, r, mSunriseSunsetHandPaint, c);
-        drawHand(fractionOfDay(mSunsetTime), centerX, centerY, r, mSunriseSunsetHandPaint, c);
+        drawArc(fractionOfDay(mDawnTime), fractionOfDay(mSunriseTime), centerX, centerY, r,
+                mSunriseSunsetHandPaint, c);
+        drawArc(fractionOfDay(mSunsetTime), fractionOfDay(mDuskTime), centerX, centerY, r,
+                mSunriseSunsetHandPaint, c);
 
     }
 
@@ -135,10 +141,28 @@ public class ClockView extends View {
         return ((double) t.getSecondOfMinute()) / 60.0;
     }
 
-    private void drawHand(double fraction, int centerX, int centerY, int r, Paint paint, Canvas c) {
-        int destX = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
-        int destY = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
+    private Point getPointOnCircle(double fraction, int centerX, int centerY, int r) {
+        int x = centerX + (int) (r * Math.cos(Math.PI / 2 - fraction * 2 * Math.PI));
+        int y = centerY - (int) (r * Math.sin(Math.PI / 2 - fraction * 2 * Math.PI));
+        return new Point(x, y);
 
-        c.drawLine(centerX, centerY, destX, destY, paint);
+    }
+
+    private void drawHand(double fraction, int centerX, int centerY, int r, Paint paint, Canvas c) {
+        Point dest = getPointOnCircle(fraction, centerX, centerY, r);
+        c.drawLine(centerX, centerY, dest.x, dest.y, paint);
+    }
+
+    private void drawArc(double fraction1, double fraction2, int centerX, int centerY, int r,
+                         Paint paint, Canvas c) {
+        if (fraction1 > fraction2) {
+            double tmp = fraction1;
+            fraction1 = fraction2;
+            fraction2 = tmp;
+        }
+
+        c.drawArc(new RectF(centerX - r, centerY - r, centerX + r, centerY + r),
+                360f * (float) fraction1 - 90, 360 * (float) (fraction2 - fraction1),
+                true, paint);
     }
 }
