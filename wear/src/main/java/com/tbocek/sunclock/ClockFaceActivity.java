@@ -98,13 +98,14 @@ public class ClockFaceActivity extends Activity {
 
         return new DateTime(
                 t.getYear(), t.getMonthOfYear(), t.getDayOfMonth(), hours, minutes,
-                secondsInMinute).withZone(t.getZone());
+                secondsInMinute).plusMillis(t.getZone().getOffset(t.toInstant()));
     }
 
     private void resetSunriseAndSunsetTimes() {
         DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
         mLastSunriseUpdateTime = currentTime;
-        ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG), -7);
+        ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG),
+                currentTime.getZone().getOffset(currentTime.toInstant()) / 3600);
 
         Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
         Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,

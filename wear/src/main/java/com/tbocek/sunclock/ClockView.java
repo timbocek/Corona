@@ -93,8 +93,8 @@ public class ClockView extends View {
     public void setSunriseTimes(DateTime sunriseTime, DateTime dawnTime) {
         this.mSunriseTime = sunriseTime;
         this.mDawnTime = dawnTime;
-        Log.i(TAG, "Dawn Time = " + dawnTime.toString());
-        Log.i(TAG, "Sunrise Time = " + sunriseTime.toString());
+        Log.i(TAG, "Dawn Time = " + dawnTime.toString("HH:mm:ss ZZ"));
+        Log.i(TAG, "Sunrise Time = " + sunriseTime.toString("HH:mm:ss ZZ"));
         this.invalidate();
     }
 
@@ -106,8 +106,8 @@ public class ClockView extends View {
         this.mSunsetTime = sunsetTime;
         this.mDuskTime = duskTime;
 
-        Log.i(TAG, "Sunset Time = " + sunsetTime.toString());
-        Log.i(TAG, "Dusk Time = " + duskTime.toString());
+        Log.i(TAG, "Sunset Time = " + sunsetTime.toString("HH:mm:ss ZZ"));
+        Log.i(TAG, "Dusk Time = " + duskTime.toString("HH:mm:ss ZZ"));
         this.invalidate();
     }
 
