@@ -78,41 +78,44 @@ public class ClockFaceActivity extends Activity {
         updateTime();
     }
 
-    Pair<DateTime, DateTime> computeTimes(
+    private Pair<DateTime, DateTime> computeTimes(
             ObsInfo observerInfo, DateTime currentTime, int riseSetType) {
         double julianDay = new AstroDate(currentTime.getDayOfMonth(), currentTime.getMonthOfYear(),
-                currentTime.getYear(), currentTime.getHourOfDay(), currentTime.getMinuteOfHour(),
-                currentTime.getSecondOfMinute()).jd();
+                currentTime.getYear()).jd();
         RiseSet calc = new RiseSet();
-        TimePair timePair = calc.getTimes(RiseSet.SUN, julianDay, observerInfo);
-        AstroDate rise = new AstroDate(timePair.a);
-        AstroDate set = new AstroDate(timePair.b);
+        TimePair timePair = calc.getTimes(riseSetType, julianDay, observerInfo);
 
         return new Pair<DateTime, DateTime> (
-                new DateTime(rise.year(), rise.month(), rise.day(), rise.hour(), rise.minute(),
-                        rise.second()),
-                new DateTime(set.year(), set.month(), set.day(), set.hour(), set.minute(),
-                        set.second())
-        );
+                changeDayFraction(currentTime, timePair.a),
+                changeDayFraction(currentTime, timePair.b));
+    }
+
+    private DateTime changeDayFraction(DateTime t, double dayFraction) {
+        int secondsInDay = (int) ((60 * 60 * 24) * dayFraction);
+        int secondsInMinute = secondsInDay % 60;
+        int minutes = (secondsInDay / 60) % 60;
+        int hours = secondsInDay / (60 * 60);
+
+        return new DateTime(
+                t.getYear(), t.getMonthOfYear(), t.getDayOfMonth(), hours, minutes,
+                secondsInMinute).withZone(t.getZone());
     }
 
     private void resetSunriseAndSunsetTimes() {
         DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
         mLastSunriseUpdateTime = currentTime;
-        ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG),
-                currentTime.getZone().getOffset(currentTime.toInstant()));
+        ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG), -7);
 
         Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
+        Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,
+                RiseSet.CIVIL_TWI);
 
-        Calendar sunriseTime = sunTimes.first.toCalendar(Locale.US);
-        Calendar sunsetTime = sunTimes.second.toCalendar(Locale.US);
-
-        if (sunriseTime != null) {
-            mClockView.setSunriseTime(new DateTime(sunriseTime));
+        if (sunTimes.first != null) {
+            mClockView.setSunriseTimes(sunTimes.first, duskTimes.first);
         }
 
-        if (sunsetTime != null) {
-            mClockView.setSunsetTime(new DateTime(sunsetTime));
+        if (sunTimes.second != null) {
+            mClockView.setSunsetTimes(sunTimes.second, duskTimes.second);
         }
     }
 
