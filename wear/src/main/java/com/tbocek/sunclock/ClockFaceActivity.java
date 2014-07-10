@@ -7,9 +7,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
+import android.util.Pair;
 
-import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
-import com.luckycatlabs.sunrisesunset.dto.Location;
+import com.mhuss.AstroLib.AstroDate;
+import com.mhuss.AstroLib.Latitude;
+import com.mhuss.AstroLib.Longitude;
+import com.mhuss.AstroLib.ObsInfo;
+import com.mhuss.AstroLib.RiseSet;
+import com.mhuss.AstroLib.TimePair;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -73,16 +78,34 @@ public class ClockFaceActivity extends Activity {
         updateTime();
     }
 
+    Pair<DateTime, DateTime> computeTimes(
+            ObsInfo observerInfo, DateTime currentTime, int riseSetType) {
+        double julianDay = new AstroDate(currentTime.getDayOfMonth(), currentTime.getMonthOfYear(),
+                currentTime.getYear(), currentTime.getHourOfDay(), currentTime.getMinuteOfHour(),
+                currentTime.getSecondOfMinute()).jd();
+        RiseSet calc = new RiseSet();
+        TimePair timePair = calc.getTimes(RiseSet.SUN, julianDay, observerInfo);
+        AstroDate rise = new AstroDate(timePair.a);
+        AstroDate set = new AstroDate(timePair.b);
+
+        return new Pair<DateTime, DateTime> (
+                new DateTime(rise.year(), rise.month(), rise.day(), rise.hour(), rise.minute(),
+                        rise.second()),
+                new DateTime(set.year(), set.month(), set.day(), set.hour(), set.minute(),
+                        set.second())
+        );
+    }
+
     private void resetSunriseAndSunsetTimes() {
         DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
         mLastSunriseUpdateTime = currentTime;
-        Location location = new Location(SEATTLE_LAT, SEATTLE_LONG);
-        SunriseSunsetCalculator calc = new SunriseSunsetCalculator(location, "America/Los_Angeles");
+        ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG),
+                currentTime.getZone().getOffset(currentTime.toInstant()));
 
-        Calendar sunriseTime = calc.getOfficialSunriseCalendarForDate(
-                currentTime.toCalendar(Locale.US));
-        Calendar sunsetTime = calc.getOfficialSunsetCalendarForDate(
-                currentTime.toCalendar(Locale.US));
+        Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
+
+        Calendar sunriseTime = sunTimes.first.toCalendar(Locale.US);
+        Calendar sunsetTime = sunTimes.second.toCalendar(Locale.US);
 
         if (sunriseTime != null) {
             mClockView.setSunriseTime(new DateTime(sunriseTime));
