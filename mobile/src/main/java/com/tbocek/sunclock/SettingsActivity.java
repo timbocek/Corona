@@ -1,13 +1,18 @@
 package com.tbocek.sunclock;
 
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
+import android.location.Address;
+import android.location.Geocoder;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -16,8 +21,14 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -181,17 +192,81 @@ public class SettingsActivity extends PreferenceActivity {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static class GeneralPreferenceFragment extends PreferenceFragment {
+        private static final String TAG = "GeneralPreferenceFragment";
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_general);
 
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
+            findPreference("lookup_location").setOnPreferenceClickListener(
+                    new Preference.OnPreferenceClickListener() {
+                        @Override
+                        public boolean onPreferenceClick(Preference preference) {
+                            lookupLocation();
+                            return true;
+                        }
+            });
+        }
+
+
+        private void lookupLocation() {
+            if (!Geocoder.isPresent()) {
+                Toast.makeText(getActivity(), getString(R.string.lookup_location_no_geocoder),
+                               Toast.LENGTH_LONG).show();
+            }
+
+            LayoutInflater inflater = getActivity().getLayoutInflater();
+            final View view = inflater.inflate(R.layout.lookup_location, null);
+            final EditTextPreference latPref =
+                    (EditTextPreference) findPreference("custom_latitude");
+            final EditTextPreference longPref =
+                    (EditTextPreference) findPreference("custom_longitude");
+            new AlertDialog.Builder(getActivity())
+                    .setView(view)
+                    .setTitle(R.string.lookup_location_title)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            EditText entry =
+                                    (EditText) view.findViewById(R.id.lookup_location_entry);
+                            String locationName = entry.getText().toString();
+                            Log.i(TAG, "Looking up location for " + locationName);
+                            try {
+                                List<Address> locations =
+                                        new Geocoder(getActivity())
+                                                .getFromLocationName(locationName, 1);
+                                if (locations != null && !locations.isEmpty()) {
+                                    Address location = locations.get(0);
+                                    double lat = location.getLatitude();
+                                    double longi = location.getLongitude();
+
+                                    latPref.setText(Double.toString(lat));
+                                    longPref.setText(Double.toString(longi));
+                                } else {
+                                    Toast.makeText(
+                                            getActivity(),
+                                            getString(R.string.lookup_location_not_found),
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            } catch (IOException e) {
+                                Toast.makeText(
+                                        getActivity(),
+                                        getString(R.string.lookup_location_no_network),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            }
+                    )
+                    .show();
         }
     }
 }

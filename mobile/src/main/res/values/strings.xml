@@ -8,4 +8,10 @@
     <string name="pref_custom_longitude">Custom Longitude</string>
     <string name="pref_lookup_location">Look Up Location</string>
     <string name="pref_description_lookup_location">Look up a custom location by entering a city, zip code, etc.</string>
+    <string name="lookup_location_message">Enter the name of a location, such as a city or zip code.</string>
+    <string name="lookup_location_title">Look Up Location</string>
+    <string name="lookup_location_description">Enter a place name, such as a city, address, zip code, airport, etc.</string>
+    <string name="lookup_location_no_geocoder">Sorry, the Google geocoding service is not available on this device</string>
+    <string name="lookup_location_no_network">You must be connected to the Internet to use the geocoding features.</string>
+    <string name="lookup_location_not_found">Could not match the entered location to a latitude and longitude.</string>
 </resources>
