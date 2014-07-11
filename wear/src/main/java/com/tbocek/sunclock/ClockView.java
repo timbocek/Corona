@@ -121,7 +121,7 @@ public class ClockView extends View {
         int centerX = getWidth() / 2;
         int centerY = getHeight() / 2;
         int r = Math.min(getWidth(), getHeight()) / 2 - (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX, 10, dm);
+                TypedValue.COMPLEX_UNIT_PX, 24, dm);
 
         // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
         // antialiasing on the day and night sections won't produce white line artifacts.
