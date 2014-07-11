@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">SunClock</string>
+    <string name="pref_description_auto_location">Use the GPS to determine location for the purpose of computing sunrise and sunset times.</string>
+    <string name="pref_title_auto_location">Automatic Location</string>
+    <string name="pref_custom_latitude">Custom Latitude</string>
+    <string name="pref_description_custom_latitude">Latitude of the location to use for calculating events.</string>
+    <string name="pref_description_custom_longitude">Longtitude of the location to use for calculating events.</string>
+    <string name="pref_custom_longitude">Custom Longitude</string>
+    <string name="pref_lookup_location">Look Up Location</string>
+    <string name="pref_description_lookup_location">Look up a custom location by entering a city, zip code, etc.</string>
 </resources>
