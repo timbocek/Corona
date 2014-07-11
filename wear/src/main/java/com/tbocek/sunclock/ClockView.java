@@ -21,9 +21,11 @@ import org.joda.time.DateTime;
 public class ClockView extends View {
     private static final String TAG = "ClockView";
 
-    private static final int TWILIGHT_COLOR = Color.parseColor("#71488A");
-    private static final int NIGHT_COLOR = Color.parseColor("#373178");
-    private static final int DAY_COLOR = Color.parseColor("#A6DBFF");
+    private static final int TWILIGHT_COLOR = Color.parseColor("#6302E0");
+    private static final int NIGHT_COLOR = Color.parseColor("#0325D1");
+    private static final int DAY_COLOR = Color.parseColor("#0476FC");
+    private static final int HAND_COLOR = Color.parseColor("#F7D910");
+    private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
 
     private DateTime mTime  = new DateTime(2014, 1, 1, 16, 20);
     private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
@@ -51,12 +53,12 @@ public class ClockView extends View {
         super(context, attrs, defStyleAttr);
 
         mHourHandPaint = new Paint();
-        mHourHandPaint.setColor(Color.BLACK);
+        mHourHandPaint.setColor(HAND_COLOR);
         mHourHandPaint.setStrokeWidth(4.0f);
         mHourHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mMinuteHandPaint = new Paint();
-        mMinuteHandPaint.setColor(Color.BLACK);
+        mMinuteHandPaint.setColor(HAND_COLOR);
         mMinuteHandPaint.setStrokeWidth(2.0f);
         mMinuteHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
@@ -73,7 +75,7 @@ public class ClockView extends View {
         mDayPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mCirclePaint = new Paint();
-        mCirclePaint.setColor(Color.GRAY);
+        mCirclePaint.setColor(DOT_COLOR);
         mCirclePaint.setFlags(Paint.ANTI_ALIAS_FLAG);
     }
 
@@ -123,13 +125,13 @@ public class ClockView extends View {
 
         // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
         // antialiasing on the day and night sections won't produce white line artifacts.
-        drawArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01, centerX, centerY, r,
+        drawArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01, centerX, centerY, 2*r,
                mSunriseSunsetHandPaint, c);
-        drawArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01, centerX, centerY, r,
+        drawArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01, centerX, centerY, 2*r,
                 mSunriseSunsetHandPaint, c);
-        drawArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime), centerX, centerY, r,
+        drawArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime), centerX, centerY, 2*r,
                 mDayPaint, c);
-        drawArc(fractionOfDay(mDuskTime), 1 + fractionOfDay(mDawnTime), centerX, centerY, r,
+        drawArc(fractionOfDay(mDuskTime), 1 + fractionOfDay(mDawnTime), centerX, centerY, 2*r,
                 mNightPaint, c);
 
         // Draw dots on every hour
