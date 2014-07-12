@@ -19,7 +19,9 @@ import com.mhuss.AstroLib.TimePair;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -125,6 +127,17 @@ public class ClockFaceActivity extends Activity {
             mClockView.setMoonriseTime(moonTimes.first);
             mClockView.setMoonsetTime(moonTimes.second);
         }
+
+        // Add some mock tides for testing.
+        List<DateTime> lowTides = new ArrayList<DateTime>();
+        lowTides.add(new DateTime(2014, 1, 1, 8, 00));
+        lowTides.add(new DateTime(2014, 1, 1, 19, 00));
+
+        List<DateTime> highTides = new ArrayList<DateTime>();
+        highTides.add(new DateTime(2014, 1, 1, 13, 00));
+        highTides.add(new DateTime(2014, 1, 2, 1, 00));
+
+        mClockView.setTides(lowTides, highTides);
     }
 
     private void initReceivers() {

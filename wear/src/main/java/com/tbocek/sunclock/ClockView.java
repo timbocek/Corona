@@ -10,10 +10,14 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.View;
 
 import org.joda.time.DateTime;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by tbocek on 7/8/14.
@@ -40,6 +44,9 @@ public class ClockView extends View {
     private DateTime mDuskTime = new DateTime(2014, 1, 1, 19, 30);
     private DateTime mMoonriseTime = new DateTime(2014, 1, 1, 12, 00);
     private DateTime mMoonsetTime = new DateTime(2014, 1, 1, 23, 00);
+
+    private List<DateTime> mLowTides;
+    private List<DateTime> mHighTides;
 
     private Paint mHourHandPaint;
     private Paint mMinuteHandPaint;
@@ -145,6 +152,15 @@ public class ClockView extends View {
         this.invalidate();
     }
 
+    public void setTides(List<DateTime> lowTides, List<DateTime> highTides) {
+
+
+        mLowTides = lowTides;
+        mHighTides = highTides;
+
+        this.invalidate();
+    }
+
     private int dpToPx(float dp) {
         DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, dm);
@@ -190,6 +206,12 @@ public class ClockView extends View {
         // Draw moonrise and moonset
         drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime), centerX, centerY,
                 r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, c);
+
+        // Draw tides
+        for (Pair<DateTime, DateTime> risingTide : findRisingTides()) {
+            drawArc(fractionOfDay(risingTide.first), fractionOfDay(risingTide.second),
+                    centerX, centerY, r- dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, c);
+        }
 
         int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
         drawHand(fractionOfDay(mTime), centerX, centerY, (int)(handLength * 0.8), mHourHandPaint, c);
@@ -241,5 +263,29 @@ public class ClockView extends View {
         c.drawArc(new RectF(centerX - r, centerY - r, centerX + r, centerY + r),
                 360f * (float) fraction1 - 90, 360 * (float) (fraction2 - fraction1),
                 true, paint);
+    }
+
+    private List<Pair<DateTime, DateTime>> findRisingTides() {
+        List<Pair<DateTime, DateTime>> risingTides = new ArrayList<Pair<DateTime, DateTime>>();
+
+        if (mLowTides == null || mHighTides == null ||
+                mLowTides.isEmpty() || mHighTides.isEmpty()) return risingTides;
+
+        int currentLow = 0;
+        int currentHigh = 0;
+        if (mLowTides.get(0).isAfter(mHighTides.get(0).toInstant())) {
+            currentHigh += 1;
+        }
+
+        while (currentLow < mLowTides.size() && currentHigh < mHighTides.size() &&
+                mLowTides.get(currentLow).isBefore(mLowTides.get(0)) &&
+                mHighTides.get(currentHigh).isBefore(mLowTides.get(0))) {
+            risingTides.add(new Pair<DateTime, DateTime>(
+                    mLowTides.get(currentLow), mHighTides.get(currentHigh)));
+
+            currentLow++;
+            currentHigh++;
+        }
+        return risingTides;
     }
 }
