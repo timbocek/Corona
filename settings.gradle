@@ -1,1 +1,1 @@
-include ':mobile', ':wear', ':AstroLib'
+include ':mobile', ':wear', ':AstroLib', ':java-tide-engine'
