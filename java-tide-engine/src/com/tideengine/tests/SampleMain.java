@@ -1,4 +1,4 @@
-package tideengine.tests;
+package com.tideengine.tests;
 
 
 import java.text.SimpleDateFormat;
@@ -10,10 +10,10 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import tideengine.BackEndTideComputer;
-import tideengine.Coefficient;
-import tideengine.TideStation;
-import tideengine.TideUtilities;
+import com.tideengine.BackEndTideComputer;
+import com.tideengine.Coefficient;
+import com.tideengine.TideStation;
+import com.tideengine.TideUtilities;
 
 
 public class SampleMain

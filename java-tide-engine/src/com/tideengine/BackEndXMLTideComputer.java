@@ -1,4 +1,4 @@
-package tideengine;
+package com.tideengine;
 
 import java.util.ArrayList;
 import java.util.HashMap;

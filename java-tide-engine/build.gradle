@@ -27,13 +27,6 @@ repositories {
   maven { url "file:///" + userprofile + "/.m2/repository" }
 }
 
-dependencies {
-  testCompile 'junit:junit:4.8.2'
-  compile 'oracle:xmlparser:v2'
-  compile 'jansi:ansi:1.9'
-  compile project(':CoreUtilities')
-}
-
 task copyResources(type: Copy) {
   description = 'Copies non-java resources in the output directory before the jar task (png, xml, xsd, ttf, properties, etc)'
   from 'src'
