@@ -27,8 +27,8 @@ public class ClockView extends View {
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
     public static final int LARGE_DOT_RADIUS = 6;
-    public static final int MEDIUM_DOT_RADIUS = 4;
-    public static final int SMALL_DOT_RADIUS = 2;
+    public static final int MEDIUM_DOT_RADIUS = 3;
+    public static final float SMALL_DOT_RADIUS = 1.5f;
     public static final int DOT_CENTER_EDGE_DISTANCE = 24;
     public static final int MOONRISE_EDGE_DISTANCE = 16;
     public static final int TIDE_EDGE_DISTANCE = 32;
@@ -41,13 +41,13 @@ public class ClockView extends View {
     private DateTime mMoonriseTime = new DateTime(2014, 1, 1, 12, 00);
     private DateTime mMoonsetTime = new DateTime(2014, 1, 1, 23, 00);
 
-
     private Paint mHourHandPaint;
     private Paint mMinuteHandPaint;
     private Paint mSunriseSunsetHandPaint;
     private Paint mCirclePaint;
     private Paint mDayPaint;
     private Paint mNightPaint;
+    private Paint mMoonPaint;
 
     public ClockView(Context context) {
         this(context, null, 0);
@@ -85,6 +85,12 @@ public class ClockView extends View {
         mCirclePaint = new Paint();
         mCirclePaint.setColor(DOT_COLOR);
         mCirclePaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+
+        mMoonPaint = new Paint();
+        mMoonPaint.setColor(DOT_COLOR);
+        mMoonPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+        mMoonPaint.setStyle(Paint.Style.STROKE);
+        mMoonPaint.setStrokeWidth(2.0f);
     }
 
     public DateTime getTime() {
@@ -183,7 +189,7 @@ public class ClockView extends View {
 
         // Draw moonrise and moonset
         drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime), centerX, centerY,
-                r - dpToPx(MOONRISE_EDGE_DISTANCE), mCirclePaint, c);
+                r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, c);
 
         int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
         drawHand(fractionOfDay(mTime), centerX, centerY, (int)(handLength * 0.8), mHourHandPaint, c);
