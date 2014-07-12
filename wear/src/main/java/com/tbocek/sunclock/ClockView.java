@@ -26,12 +26,20 @@ public class ClockView extends View {
     private static final int DAY_COLOR = Color.parseColor("#0476FC");
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
+    public static final int LARGE_DOT_RADIUS = 6;
+    public static final int MEDIUM_DOT_RADIUS = 4;
+    public static final int SMALL_DOT_RADIUS = 2;
+    public static final int DOT_CENTER_EDGE_DISTANCE = 24;
+    public static final int MOONRISE_EDGE_DISTANCE = 16;
+    public static final int TIDE_EDGE_DISTANCE = 32;
 
     private DateTime mTime  = new DateTime(2014, 1, 1, 16, 20);
     private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
     private DateTime mSunsetTime = new DateTime(2014, 1, 1, 19, 00);
     private DateTime mDawnTime = new DateTime(2014, 1, 1, 4, 30);
     private DateTime mDuskTime = new DateTime(2014, 1, 1, 19, 30);
+    private DateTime mMoonriseTime = new DateTime(2014, 1, 1, 12, 00);
+    private DateTime mMoonsetTime = new DateTime(2014, 1, 1, 23, 00);
 
 
     private Paint mHourHandPaint;
@@ -113,6 +121,29 @@ public class ClockView extends View {
         this.invalidate();
     }
 
+    public DateTime getMoonriseTime() {
+        return mMoonriseTime;
+    }
+
+    public void setMoonriseTime(DateTime moonriseTime) {
+        mMoonriseTime = moonriseTime;
+        this.invalidate();
+    }
+
+    public DateTime getMoonsetTime() {
+        return mMoonsetTime;
+    }
+
+    public void setMoonsetTime(DateTime moonsetTime) {
+        mMoonsetTime = moonsetTime;
+        this.invalidate();
+    }
+
+    private int dpToPx(float dp) {
+        DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, dm);
+    }
+
     public void onDraw(Canvas c) {
         DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
 
@@ -120,38 +151,43 @@ public class ClockView extends View {
 
         int centerX = getWidth() / 2;
         int centerY = getHeight() / 2;
-        int r = Math.min(getWidth(), getHeight()) / 2 - (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_PX, 24, dm);
+        int r = Math.min(getWidth(), getHeight()) / 2;
 
         // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
         // antialiasing on the day and night sections won't produce white line artifacts.
-        drawArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01, centerX, centerY, 2*r,
-               mSunriseSunsetHandPaint, c);
-        drawArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01, centerX, centerY, 2*r,
+        fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01, centerX, centerY, 2 * r,
                 mSunriseSunsetHandPaint, c);
-        drawArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime), centerX, centerY, 2*r,
+        fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01, centerX, centerY, 2 * r,
+                mSunriseSunsetHandPaint, c);
+        fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime), centerX, centerY, 2 * r,
                 mDayPaint, c);
-        drawArc(fractionOfDay(mDuskTime), 1 + fractionOfDay(mDawnTime), centerX, centerY, 2*r,
+        fillArc(fractionOfDay(mDuskTime), 1 + fractionOfDay(mDawnTime), centerX, centerY, 2 * r,
                 mNightPaint, c);
 
         // Draw dots on every hour
         for (int i = 0; i < 24; ++i) {
-            Point dest = getPointOnCircle(((float)i) / 24, centerX, centerY, r);
+            Point dest = getPointOnCircle(((float)i) / 24, centerX, centerY,
+                    r - dpToPx(DOT_CENTER_EDGE_DISTANCE));
             int dotRadius;
             if (i % 6 == 0) {
-                dotRadius = 6;
+                dotRadius = dpToPx(LARGE_DOT_RADIUS);
             } else if (i % 2 == 0) {
-                dotRadius = 4;
+                dotRadius = dpToPx(MEDIUM_DOT_RADIUS);
             } else {
-                dotRadius = 2;
+                dotRadius = dpToPx(SMALL_DOT_RADIUS);
             }
             dotRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dotRadius, dm);
 
             c.drawCircle(dest.x, dest.y, dotRadius, mCirclePaint);
         }
 
-        drawHand(fractionOfDay(mTime), centerX, centerY, (int)(r * 0.8), mHourHandPaint, c);
-        drawHand(fractionOfHour(mTime), centerX, centerY, r, mMinuteHandPaint, c);
+        // Draw moonrise and moonset
+        drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime), centerX, centerY,
+                r - dpToPx(MOONRISE_EDGE_DISTANCE), mCirclePaint, c);
+
+        int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
+        drawHand(fractionOfDay(mTime), centerX, centerY, (int)(handLength * 0.8), mHourHandPaint, c);
+        drawHand(fractionOfHour(mTime), centerX, centerY, handLength, mMinuteHandPaint, c);
     }
 
     private double fractionOfDay(DateTime t) {
@@ -182,6 +218,19 @@ public class ClockView extends View {
     }
 
     private void drawArc(double fraction1, double fraction2, int centerX, int centerY, int r,
+                         Paint paint, Canvas c) {
+        if (fraction1 > fraction2) {
+            fraction2 += 1.0;
+        }
+
+        Path p = new Path();
+        p.addArc(new RectF(centerX - r, centerY - r, centerX + r, centerY + r),
+                360f * (float) fraction1 - 90, 360 * (float) (fraction2 - fraction1));
+
+        c.drawPath(p, paint);
+    }
+
+    private void fillArc(double fraction1, double fraction2, int centerX, int centerY, int r,
                          Paint paint, Canvas c) {
         c.drawArc(new RectF(centerX - r, centerY - r, centerX + r, centerY + r),
                 360f * (float) fraction1 - 90, 360 * (float) (fraction2 - fraction1),

@@ -118,6 +118,13 @@ public class ClockFaceActivity extends Activity {
         if (sunTimes.second != null) {
             mClockView.setSunsetTimes(sunTimes.second, duskTimes.second);
         }
+
+        Pair<DateTime, DateTime> moonTimes = computeTimes(observerInfo, currentTime, RiseSet.MOON);
+
+        if (moonTimes.first != null && moonTimes.second != null) {
+            mClockView.setMoonriseTime(moonTimes.first);
+            mClockView.setMoonsetTime(moonTimes.second);
+        }
     }
 
     private void initReceivers() {
