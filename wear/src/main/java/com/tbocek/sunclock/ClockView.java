@@ -355,8 +355,8 @@ public class ClockView extends View {
         }
 
         while (currentLow < mLowTides.size() && currentHigh < mHighTides.size() &&
-                mLowTides.get(currentLow).isBefore(mLowTides.get(0)) &&
-                mHighTides.get(currentHigh).isBefore(mLowTides.get(0))) {
+                mLowTides.get(currentLow).minusDays(1).isBefore(mLowTides.get(0)) &&
+                mHighTides.get(currentHigh).minusDays(1).isBefore(mLowTides.get(0))) {
             risingTides.add(new Pair<DateTime, DateTime>(
                     mLowTides.get(currentLow), mHighTides.get(currentHigh)));
 

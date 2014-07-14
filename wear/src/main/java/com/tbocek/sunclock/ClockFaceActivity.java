@@ -134,10 +134,13 @@ public class ClockFaceActivity extends Activity {
         List<DateTime> lowTides = new ArrayList<DateTime>();
         lowTides.add(new DateTime(2014, 1, 1, 8, 00));
         lowTides.add(new DateTime(2014, 1, 1, 19, 00));
+        lowTides.add(new DateTime(2014, 1, 2, 7, 00));
 
         List<DateTime> highTides = new ArrayList<DateTime>();
+        highTides.add(new DateTime(2013, 12, 31, 1, 00));
         highTides.add(new DateTime(2014, 1, 1, 13, 00));
         highTides.add(new DateTime(2014, 1, 2, 1, 00));
+        highTides.add(new DateTime(2014, 1, 2, 12, 00));
 
         mClockView.setTides(lowTides, highTides);
 
