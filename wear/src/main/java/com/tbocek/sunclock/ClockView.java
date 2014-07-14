@@ -7,7 +7,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.RadialGradient;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -60,6 +62,7 @@ public class ClockView extends View {
     private Paint mNightPaint;
     private Paint mMoonPaint;
     private Paint mAstroTwilightPaint;
+    private Paint mVignettePaint;
 
     private boolean mHeld = false;
 
@@ -210,6 +213,8 @@ public class ClockView extends View {
         fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
                 mNightPaint, c);
 
+        c.drawRect(0, 0, getWidth(), getHeight(), mVignettePaint);
+
         // Draw dots on every hour
         for (int i = 0; i < 24; ++i) {
             Point dest = getPointOnCircle(((float)i) / 24, centerX, centerY,
@@ -240,6 +245,14 @@ public class ClockView extends View {
         int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
         drawHand(fractionOfDay(mTime), centerX, centerY, (int)(handLength * 0.8), mHourHandPaint, c);
         drawHand(fractionOfHour(mTime), centerX, centerY, handLength, mMinuteHandPaint, c);
+    }
+
+    protected void onSizeChanged (int w, int h, int oldw, int oldh) {
+        // Set up a radial gradient when we know the width and height of the view.
+        mVignettePaint = new Paint();
+        mVignettePaint.setShader(new RadialGradient(
+                w / 2, h / 2, (float) (Math.max(w/2, h/2) * Math.sqrt(2)),
+                Color.argb(0, 0, 0, 0), Color.argb(100, 0, 0, 0), Shader.TileMode.CLAMP));
     }
 
     private double fractionOfDay(DateTime t) {
