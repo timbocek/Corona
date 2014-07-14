@@ -26,9 +26,10 @@ import java.util.List;
 public class ClockView extends View {
     private static final String TAG = "ClockView";
 
-    private static final int TWILIGHT_COLOR = Color.parseColor("#6302E0");
-    private static final int NIGHT_COLOR = Color.parseColor("#0123CF");
-    private static final int DAY_COLOR = Color.parseColor("#0072F9");
+    private static final int TWILIGHT_COLOR = Color.parseColor("#5714E8");
+    private static final int TWILIGHT_COLOR_2 = Color.parseColor("#1505FF");
+    private static final int NIGHT_COLOR = Color.parseColor("#031669");
+    private static final int DAY_COLOR = Color.parseColor("#7AB3FF");
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
     public static final int LARGE_DOT_RADIUS = 6;
