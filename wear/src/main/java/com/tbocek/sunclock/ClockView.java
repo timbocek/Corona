@@ -27,7 +27,7 @@ public class ClockView extends View {
     private static final String TAG = "ClockView";
 
     private static final int TWILIGHT_COLOR = Color.parseColor("#5714E8");
-    private static final int TWILIGHT_COLOR_2 = Color.parseColor("#1505FF");
+    private static final int TWILIGHT_COLOR_2 = Color.parseColor("#0C00E0");
     private static final int NIGHT_COLOR = Color.parseColor("#031669");
     private static final int DAY_COLOR = Color.parseColor("#7AB3FF");
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
@@ -44,6 +44,8 @@ public class ClockView extends View {
     private DateTime mSunsetTime = new DateTime(2014, 1, 1, 19, 00);
     private DateTime mDawnTime = new DateTime(2014, 1, 1, 4, 30);
     private DateTime mDuskTime = new DateTime(2014, 1, 1, 19, 30);
+    private DateTime mAstroDawnTime =new DateTime(2014, 1, 1, 3, 00);
+    private DateTime mAstroDuskTime = new DateTime(2014, 1, 1, 21, 00);
     private DateTime mMoonriseTime = new DateTime(2014, 1, 1, 12, 00);
     private DateTime mMoonsetTime = new DateTime(2014, 1, 1, 23, 00);
 
@@ -57,6 +59,7 @@ public class ClockView extends View {
     private Paint mDayPaint;
     private Paint mNightPaint;
     private Paint mMoonPaint;
+    private Paint mAstroTwilightPaint;
 
     private boolean mHeld = false;
 
@@ -84,6 +87,10 @@ public class ClockView extends View {
         mSunriseSunsetHandPaint = new Paint();
         mSunriseSunsetHandPaint.setColor(TWILIGHT_COLOR);
         mSunriseSunsetHandPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+
+        mAstroTwilightPaint = new Paint();
+        mAstroTwilightPaint.setColor(TWILIGHT_COLOR_2);
+        mAstroTwilightPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
 
         mNightPaint = new Paint();
         mNightPaint.setColor(NIGHT_COLOR);
@@ -118,10 +125,12 @@ public class ClockView extends View {
         return mSunriseTime;
     }
 
-    public void setSunriseTimes(DateTime sunriseTime, DateTime dawnTime) {
+    public void setSunriseTimes(DateTime sunriseTime, DateTime dawnTime, DateTime astroDawnTime) {
         this.mSunriseTime = sunriseTime;
         this.mDawnTime = dawnTime;
-        Log.i(TAG, "Dawn Time = " + dawnTime.toString("HH:mm:ss ZZ"));
+        this.mAstroDawnTime = astroDawnTime;
+        Log.i(TAG, "Astronomical Dawn Time = " + astroDawnTime.toString("HH:mm:ss ZZ"));
+        Log.i(TAG, "Civil Dawn Time = " + dawnTime.toString("HH:mm:ss ZZ"));
         Log.i(TAG, "Sunrise Time = " + sunriseTime.toString("HH:mm:ss ZZ"));
         if (!mHeld) this.invalidate();
     }
@@ -130,12 +139,14 @@ public class ClockView extends View {
         return mSunsetTime;
     }
 
-    public void setSunsetTimes(DateTime sunsetTime, DateTime duskTime) {
+    public void setSunsetTimes(DateTime sunsetTime, DateTime duskTime, DateTime astroDuskTime) {
         this.mSunsetTime = sunsetTime;
         this.mDuskTime = duskTime;
+        this.mAstroDuskTime = astroDuskTime;
 
         Log.i(TAG, "Sunset Time = " + sunsetTime.toString("HH:mm:ss ZZ"));
-        Log.i(TAG, "Dusk Time = " + duskTime.toString("HH:mm:ss ZZ"));
+        Log.i(TAG, "Civil Dusk Time = " + duskTime.toString("HH:mm:ss ZZ"));
+        Log.i(TAG, "Astronomical Dusk Time = " + astroDuskTime.toString("HH:mm:ss ZZ"));
         if (!mHeld) this.invalidate();
     }
 
@@ -190,9 +201,13 @@ public class ClockView extends View {
         fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
                 mSunriseSunsetHandPaint, c);
 
+        fillArc(fractionOfDay(mAstroDawnTime) - 0.01, fractionOfDay(mDawnTime), mAstroTwilightPaint, c);
+        fillArc(fractionOfDay(mDuskTime), Math.min(fractionOfDay(mAstroDuskTime) + .01, 1.0),
+                mAstroTwilightPaint, c);
+
         fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
                 mDayPaint, c);
-        fillArc(fractionOfDay(mDuskTime), fractionOfDay(mDawnTime),
+        fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
                 mNightPaint, c);
 
         // Draw dots on every hour

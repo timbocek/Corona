@@ -112,15 +112,17 @@ public class ClockFaceActivity extends Activity {
         Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
         Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,
                 RiseSet.CIVIL_TWI);
+        Pair<DateTime, DateTime> astroDuskTimes =
+                computeTimes(observerInfo, currentTime, RiseSet.ASTRONOMICAL_TWI);
 
         mClockView.setHeld(true);
 
         if (sunTimes.first != null) {
-            mClockView.setSunriseTimes(sunTimes.first, duskTimes.first);
+            mClockView.setSunriseTimes(sunTimes.first, duskTimes.first, astroDuskTimes.first);
         }
 
         if (sunTimes.second != null) {
-            mClockView.setSunsetTimes(sunTimes.second, duskTimes.second);
+            mClockView.setSunsetTimes(sunTimes.second, duskTimes.second, astroDuskTimes.second);
         }
 
         Pair<DateTime, DateTime> moonTimes = computeTimes(observerInfo, currentTime, RiseSet.MOON);
