@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -26,16 +27,16 @@ public class ClockView extends View {
     private static final String TAG = "ClockView";
 
     private static final int TWILIGHT_COLOR = Color.parseColor("#6302E0");
-    private static final int NIGHT_COLOR = Color.parseColor("#0325D1");
-    private static final int DAY_COLOR = Color.parseColor("#0476FC");
+    private static final int NIGHT_COLOR = Color.parseColor("#0123CF");
+    private static final int DAY_COLOR = Color.parseColor("#0072F9");
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
     public static final int LARGE_DOT_RADIUS = 6;
     public static final int MEDIUM_DOT_RADIUS = 3;
     public static final float SMALL_DOT_RADIUS = 1.5f;
     public static final int DOT_CENTER_EDGE_DISTANCE = 24;
-    public static final int MOONRISE_EDGE_DISTANCE = 16;
-    public static final int TIDE_EDGE_DISTANCE = 32;
+    public static final int MOONRISE_EDGE_DISTANCE = 12;
+    public static final int TIDE_EDGE_DISTANCE = 36;
 
     private DateTime mTime  = new DateTime(2014, 1, 1, 16, 20);
     private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
@@ -55,6 +56,8 @@ public class ClockView extends View {
     private Paint mDayPaint;
     private Paint mNightPaint;
     private Paint mMoonPaint;
+
+    private boolean mHeld = false;
 
     public ClockView(Context context) {
         this(context, null, 0);
@@ -106,7 +109,8 @@ public class ClockView extends View {
 
     public void setTime(DateTime mTime) {
         this.mTime = mTime;
-        this.invalidate();
+
+        if (!mHeld) this.invalidate();
     }
 
     public DateTime getSunriseTime() {
@@ -118,7 +122,7 @@ public class ClockView extends View {
         this.mDawnTime = dawnTime;
         Log.i(TAG, "Dawn Time = " + dawnTime.toString("HH:mm:ss ZZ"));
         Log.i(TAG, "Sunrise Time = " + sunriseTime.toString("HH:mm:ss ZZ"));
-        this.invalidate();
+        if (!mHeld) this.invalidate();
     }
 
     public DateTime getSunsetTime() {
@@ -131,7 +135,7 @@ public class ClockView extends View {
 
         Log.i(TAG, "Sunset Time = " + sunsetTime.toString("HH:mm:ss ZZ"));
         Log.i(TAG, "Dusk Time = " + duskTime.toString("HH:mm:ss ZZ"));
-        this.invalidate();
+        if (!mHeld) this.invalidate();
     }
 
     public DateTime getMoonriseTime() {
@@ -140,7 +144,7 @@ public class ClockView extends View {
 
     public void setMoonriseTime(DateTime moonriseTime) {
         mMoonriseTime = moonriseTime;
-        this.invalidate();
+        if (!mHeld) this.invalidate();
     }
 
     public DateTime getMoonsetTime() {
@@ -149,16 +153,18 @@ public class ClockView extends View {
 
     public void setMoonsetTime(DateTime moonsetTime) {
         mMoonsetTime = moonsetTime;
-        this.invalidate();
+        if (!mHeld) this.invalidate();
     }
 
     public void setTides(List<DateTime> lowTides, List<DateTime> highTides) {
-
-
         mLowTides = lowTides;
         mHighTides = highTides;
+        if (!mHeld) this.invalidate();
+    }
 
-        this.invalidate();
+    public void setHeld(boolean held) {
+        mHeld = held;
+        if (!mHeld) this.invalidate();
     }
 
     private int dpToPx(float dp) {
@@ -167,6 +173,7 @@ public class ClockView extends View {
     }
 
     public void onDraw(Canvas c) {
+        Log.i(TAG, "DRAW!");
         DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
 
         c.drawColor(Color.WHITE);
@@ -177,13 +184,14 @@ public class ClockView extends View {
 
         // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
         // antialiasing on the day and night sections won't produce white line artifacts.
-        fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01, centerX, centerY, 2 * r,
+        fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
+                mSunriseSunsetHandPaint, c) ;
+        fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
                 mSunriseSunsetHandPaint, c);
-        fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01, centerX, centerY, 2 * r,
-                mSunriseSunsetHandPaint, c);
-        fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime), centerX, centerY, 2 * r,
+
+        fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
                 mDayPaint, c);
-        fillArc(fractionOfDay(mDuskTime), 1 + fractionOfDay(mDawnTime), centerX, centerY, 2 * r,
+        fillArc(fractionOfDay(mDuskTime), fractionOfDay(mDawnTime),
                 mNightPaint, c);
 
         // Draw dots on every hour
@@ -203,14 +211,14 @@ public class ClockView extends View {
             c.drawCircle(dest.x, dest.y, dotRadius, mCirclePaint);
         }
 
-        // Draw moonrise and moonset
-        drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime), centerX, centerY,
-                r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, c);
+         //Draw moonrise and moonset
+         drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime),
+                 r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, c);
 
         // Draw tides
         for (Pair<DateTime, DateTime> risingTide : findRisingTides()) {
             drawArc(fractionOfDay(risingTide.first), fractionOfDay(risingTide.second),
-                    centerX, centerY, r- dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, c);
+                    r - dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, c);
         }
 
         int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
@@ -245,8 +253,10 @@ public class ClockView extends View {
         c.drawLine(centerX, centerY, dest.x, dest.y, paint);
     }
 
-    private void drawArc(double fraction1, double fraction2, int centerX, int centerY, int r,
-                         Paint paint, Canvas c) {
+    private void drawArc(double fraction1, double fraction2, int r, Paint paint, Canvas c) {
+        int centerX = getWidth() / 2;
+        int centerY = getHeight() / 2;
+
         if (fraction1 > fraction2) {
             fraction2 += 1.0;
         }
@@ -258,11 +268,78 @@ public class ClockView extends View {
         c.drawPath(p, paint);
     }
 
-    private void fillArc(double fraction1, double fraction2, int centerX, int centerY, int r,
-                         Paint paint, Canvas c) {
-        c.drawArc(new RectF(centerX - r, centerY - r, centerX + r, centerY + r),
-                360f * (float) fraction1 - 90, 360 * (float) (fraction2 - fraction1),
-                true, paint);
+    private void fillArc(double fraction1, double fraction2, Paint paint, Canvas c) {
+        PointF startPoint = getPointOnEdge(fraction1);
+        PointF endPoint = getPointOnEdge(fraction2);
+
+        Path p = new Path();
+        p.moveTo(getWidth() / 2, getHeight() / 2);
+
+        if (fraction1 < fraction2) {
+            // Draw to any corner points we need to, going clockwise
+            p.lineTo(startPoint.x, startPoint.y);
+            if (fraction1 < 1.0 / 8 && fraction2 > 1.0 / 8) {
+                p.lineTo(getWidth(), 0);
+            }
+            if (fraction1 < 3.0 / 8 && fraction2 > 3.0 / 8) {
+                p.lineTo(getWidth(), getHeight());
+            }
+            if (fraction1 < 5.0 / 8 && fraction2 > 5.0 / 8) {
+                p.lineTo(0, getHeight());
+            }
+            if (fraction1 < 7.0 / 8 && fraction2 > 7.0 / 8) {
+                p.lineTo(0, 0);
+            }
+            p.lineTo(endPoint.x, endPoint.y);
+        } else {
+            // Go counterclockwise.
+            p.lineTo(endPoint.x, endPoint.y);
+
+            // In order to determine the order and conditions here, we have to consider that,
+            // if we are drawing counter-clockwise, the most drawing happens if both points are
+            // on either side of 180 degrees.
+            if (fraction2 > 3.0 / 8 && fraction1 > 3.0 / 8) {
+                p.lineTo(getWidth(), getHeight());
+            }
+
+            if (fraction2 > 1.0 / 8 && fraction1 > 1.0 / 8) {
+                p.lineTo(getWidth(), 0);
+            }
+
+            if (fraction2 > 7.0 / 8 && fraction1 < 7.0 / 8) {
+                p.lineTo(0, 0);
+            }
+            if (fraction2 > 5.0 / 8 && fraction1 < 5.0 / 8) {
+                p.lineTo(0, getHeight());
+            }
+            p.lineTo(startPoint.x, startPoint.y);
+        }
+
+
+        c.drawPath(p, paint);
+    }
+
+    private PointF getPointOnEdge(double fraction) {
+        double theta = 2 * Math.PI * fraction;
+        double w = this.getWidth();
+        double h = this.getHeight();
+
+        if (fraction < 0 || fraction > 1) {
+            throw new IllegalArgumentException("Bad fraction: " + Double.toString(fraction) +
+                    " must be between 0 and 1.");
+        }
+
+        if (fraction < 1.0/8) {
+            return new PointF ((float)(w + h * Math.tan(theta)) / 2, 0);
+        } else if (fraction < 3.0/8) {
+            return new PointF((float) w, (float) ((h - w * Math.tan(Math.PI / 2 - theta)) / 2));
+        } else if (fraction < 5.0/8) {
+            return new PointF((float) ((w - h * Math.tan(Math.PI - theta)) / 2), (float) h);
+        } else if (fraction < 7.0/8) {
+            return new PointF (0, (float)(h + w * Math.tan(3 * Math.PI / 2 - theta)) / 2);
+        } else {
+            return new PointF ((float)(w - h * Math.tan(2 * Math.PI - theta)) / 2, 0);
+        }
     }
 
     private List<Pair<DateTime, DateTime>> findRisingTides() {

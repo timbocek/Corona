@@ -113,6 +113,8 @@ public class ClockFaceActivity extends Activity {
         Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,
                 RiseSet.CIVIL_TWI);
 
+        mClockView.setHeld(true);
+
         if (sunTimes.first != null) {
             mClockView.setSunriseTimes(sunTimes.first, duskTimes.first);
         }
@@ -138,6 +140,8 @@ public class ClockFaceActivity extends Activity {
         highTides.add(new DateTime(2014, 1, 2, 1, 00));
 
         mClockView.setTides(lowTides, highTides);
+
+        mClockView.setHeld(false);
     }
 
     private void initReceivers() {
