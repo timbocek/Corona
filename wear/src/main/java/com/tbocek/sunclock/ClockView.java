@@ -27,7 +27,7 @@ public class ClockView extends View {
     private static final String TAG = "ClockView";
 
     private static final int TWILIGHT_COLOR = Color.parseColor("#5714E8");
-    private static final int TWILIGHT_COLOR_2 = Color.parseColor("#0C00E0");
+    private static final int TWILIGHT_COLOR_2 = Color.parseColor("#070892");
     private static final int NIGHT_COLOR = Color.parseColor("#031669");
     private static final int DAY_COLOR = Color.parseColor("#7AB3FF");
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
