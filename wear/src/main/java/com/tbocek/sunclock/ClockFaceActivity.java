@@ -149,15 +149,16 @@ public class ClockFaceActivity extends Activity {
         // Find the tides
         ArrayList<DateTime> lowTides = new ArrayList<DateTime>();
         ArrayList<DateTime> highTides = new ArrayList<DateTime>();
-        for (TideComputer.TideExtreme tide : mTideComputer.getExtrema(currentTime, 36)) {
-            if (tide.getType() == TideComputer.ExtremaType.HIGH_TIDE) {
-                highTides.add(tide.getTime());
-            } else {
-                lowTides.add(tide.getTime());
+        if (mTideComputer != null) {
+            for (TideComputer.TideExtreme tide : mTideComputer.getExtrema(currentTime, 36)) {
+                if (tide.getType() == TideComputer.ExtremaType.HIGH_TIDE) {
+                    highTides.add(tide.getTime());
+                } else {
+                    lowTides.add(tide.getTime());
+                }
             }
+            mClockView.setTides(lowTides, highTides);
         }
-
-        mClockView.setTides(lowTides, highTides);
 
         mClockView.setHeld(false);
     }
