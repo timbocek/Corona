@@ -244,6 +244,8 @@ public class BackEndXMLTideComputer
     private boolean foundFactor      = false;
     
     private String coeffName = null;
+    private String coeffValueStr = null;
+    private String valueStr = null;
     private int coeffIdx = -1;
     private double coeffValue = Double.NaN;
     
@@ -263,10 +265,12 @@ public class BackEndXMLTideComputer
       else if (foundConstituent && "coeff-name".equals(qName))
       {
         foundCoeffName = true;
+        coeffName = "";
       }
       else if (foundConstituent && "coeff-value".equals(qName))
       {
         foundCoeffValue = true;
+        coeffValueStr = "";
       }
       else if (foundConstituent)
       {
@@ -274,11 +278,13 @@ public class BackEndXMLTideComputer
         {
           foundEquilibrium = true;
           year = Integer.parseInt(attributes.getValue("year"));
+          valueStr = "";
         }
         else if ("factor".equals(qName))
         {
           foundFactor = true;
           year = Integer.parseInt(attributes.getValue("year"));
+          valueStr = "";
         }
       }
     }
@@ -288,6 +294,10 @@ public class BackEndXMLTideComputer
       throws SAXException
     {
       super.endElement(uri, localName, qName);
+
+      if (coeffValueStr != null && !coeffValueStr.isEmpty()) {
+          coeffValue = Double.parseDouble(coeffValueStr);
+      }
       
       if (coeffName != null && coeffIdx != -1 && !Double.isNaN(coeffValue))
       {
@@ -313,15 +323,19 @@ public class BackEndXMLTideComputer
       {
         foundCoeffValue = false;
       }
-      if ("equilibrium".equals(qName))
+      if ("equilibrium".equals(qName) && foundEquilibrium)
       {
+        value = Double.parseDouble(valueStr);
         constituent.getEquilibrium().put(new Integer(year), value);
         foundEquilibrium = false;
+        valueStr = "";
       }
-      else if ("factor".equals(qName))
+      else if ("factor".equals(qName) && foundFactor)
       {
+          value = Double.parseDouble(valueStr);
         constituent.getFactors().put(new Integer(year), value);
         foundFactor = false;
+        valueStr = "";
       }
     }
 
@@ -329,17 +343,14 @@ public class BackEndXMLTideComputer
            throws SAXException
     {
       String str = new String(ch).substring(start, start + length).trim();
-      if (foundCoeffName)
-        coeffName = str;
-      else if (foundCoeffValue)
-        coeffValue = Double.parseDouble(str);
-      else if (foundEquilibrium)
-      {
-        value = Double.parseDouble(str);
-      }
-      else if (foundFactor)
-      {
-        value = Double.parseDouble(str);
+      if (foundCoeffName) {
+          coeffName = coeffName.concat(str);
+      } else if (foundCoeffValue) {
+          coeffValueStr = coeffValueStr.concat(str);
+      } else if (foundEquilibrium) {
+          valueStr = valueStr.concat(str);
+      } else if (foundFactor) {
+          valueStr = valueStr.concat(str);
       }
     }
   }
