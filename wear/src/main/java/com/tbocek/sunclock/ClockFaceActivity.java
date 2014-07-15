@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Pair;
@@ -59,16 +60,30 @@ public class ClockFaceActivity extends Activity {
         });
         initReceivers();
 
-        String location = "Port Townsend";
-        try {
-            BackEndTideComputer.connect();
-            BackEndTideComputer.setVerbose(false);
-            TideStation ts = BackEndTideComputer.findTideStation(
-                    location, DateTime.now().getYear());
-            mTideComputer = new TideComputer(ts);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        AsyncTask<Void, Void, Void> loadTidetableTask = new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    String location = "Seattle, Washington";
+                    BackEndTideComputer.setVerbose(true);
+                    BackEndTideComputer.connect();
+                    TideStation ts = BackEndTideComputer.findTideStation(
+                            location, DateTime.now().getYear());
+                    mTideComputer = new TideComputer(ts);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                resetSunriseAndSunsetTimes();
+            }
+        };
+        loadTidetableTask.execute();
+
     }
     @Override
     protected void onStart() {
