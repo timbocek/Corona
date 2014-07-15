@@ -446,7 +446,7 @@ public class TideUtilities
     return hcList;
   }
   
-  private static void addStationToTree(tideengine.TideStation ts, TreeMap<String, TideUtilities.StationTreeNode> currentTree)
+  private static void addStationToTree(com.tideengine.TideStation ts, TreeMap<String, TideUtilities.StationTreeNode> currentTree)
   {
     String timeZoneLabel = "";
     try { timeZoneLabel = ts.getTimeZone().substring(0, ts.getTimeZone().indexOf("/")); } catch (Exception ex) { System.err.println(ex.toString() + " for " + ts.getFullName() + " , " + ts.getTimeZone()); }
@@ -473,7 +473,7 @@ public class TideUtilities
       if (stn == null)
       {
         stn = new StationTreeNode(name);
-        stn.setStationType(ts.isCurrentStation()? tideengine.TideUtilities.StationTreeNode.CURRENT_STATION: tideengine.TideUtilities.StationTreeNode.TIDE_STATION);
+        stn.setStationType(ts.isCurrentStation()? com.tideengine.TideUtilities.StationTreeNode.CURRENT_STATION: com.tideengine.TideUtilities.StationTreeNode.TIDE_STATION);
         currentTree.put(name, stn);
       }
       currentTree = stn.getSubTree();

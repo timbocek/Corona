@@ -15,6 +15,8 @@ import com.mhuss.AstroLib.Longitude;
 import com.mhuss.AstroLib.ObsInfo;
 import com.mhuss.AstroLib.RiseSet;
 import com.mhuss.AstroLib.TimePair;
+import com.tideengine.BackEndTideComputer;
+import com.tideengine.TideStation;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 
 public class ClockFaceActivity extends Activity {
@@ -39,6 +42,8 @@ public class ClockFaceActivity extends Activity {
 
     private BroadcastReceiver mTimeUpdateReceiver;
 
+    private TideComputer mTideComputer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +58,15 @@ public class ClockFaceActivity extends Activity {
             }
         });
         initReceivers();
+
+        String location = "Port Townsend";
+        try {
+            TideStation ts = BackEndTideComputer.findTideStation(
+                    location, DateTime.now().getYear());
+            mTideComputer = new TideComputer(ts);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     @Override
     protected void onStart() {
@@ -132,17 +146,16 @@ public class ClockFaceActivity extends Activity {
             mClockView.setMoonsetTime(moonTimes.second);
         }
 
-        // Add some mock tides for testing.
-        List<DateTime> lowTides = new ArrayList<DateTime>();
-        lowTides.add(new DateTime(2014, 1, 1, 8, 00));
-        lowTides.add(new DateTime(2014, 1, 1, 19, 00));
-        lowTides.add(new DateTime(2014, 1, 2, 7, 00));
-
-        List<DateTime> highTides = new ArrayList<DateTime>();
-        highTides.add(new DateTime(2013, 12, 31, 1, 00));
-        highTides.add(new DateTime(2014, 1, 1, 13, 00));
-        highTides.add(new DateTime(2014, 1, 2, 1, 00));
-        highTides.add(new DateTime(2014, 1, 2, 12, 00));
+        // Find the tides
+        ArrayList<DateTime> lowTides = new ArrayList<DateTime>();
+        ArrayList<DateTime> highTides = new ArrayList<DateTime>();
+        for (TideComputer.TideExtreme tide : mTideComputer.getExtrema(currentTime, 36)) {
+            if (tide.getType() == TideComputer.ExtremaType.HIGH_TIDE) {
+                highTides.add(tide.getTime());
+            } else {
+                lowTides.add(tide.getTime());
+            }
+        }
 
         mClockView.setTides(lowTides, highTides);
 
