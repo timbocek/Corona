@@ -61,6 +61,8 @@ public class ClockFaceActivity extends Activity {
 
         String location = "Port Townsend";
         try {
+            BackEndTideComputer.connect();
+            BackEndTideComputer.setVerbose(false);
             TideStation ts = BackEndTideComputer.findTideStation(
                     location, DateTime.now().getYear());
             mTideComputer = new TideComputer(ts);
