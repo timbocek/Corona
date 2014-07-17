@@ -34,6 +34,11 @@ public class ClockView extends View {
     private static final int DAY_COLOR = Color.parseColor("#7AB3FF");
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
+
+    private static final int HAND_COLOR_DIMMED = Color.YELLOW;
+    private static final int DAY_COLOR_DIMMED = Color.LTGRAY;
+    private static final int NIGHT_COLOR_DIMMED = Color.BLUE;
+
     public static final int LARGE_DOT_RADIUS = 6;
     public static final int MEDIUM_DOT_RADIUS = 3;
     public static final float SMALL_DOT_RADIUS = 1.5f;
@@ -64,7 +69,15 @@ public class ClockView extends View {
     private Paint mAstroTwilightPaint;
     private Paint mVignettePaint;
 
+    private Paint mHourHandPaintDimmed;
+    private Paint mMinuteHandPaintDimmed;
+    private Paint mDayPaintDimmed;
+    private Paint mNightPaintDimmed;
+    private Paint mCirclePaintDimmed;
+    private Paint mMoonPaintDimmed;
+
     private boolean mHeld = false;
+    private boolean mDimmed = false;
 
     public ClockView(Context context) {
         this(context, null, 0);
@@ -112,6 +125,28 @@ public class ClockView extends View {
         mMoonPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
         mMoonPaint.setStyle(Paint.Style.STROKE);
         mMoonPaint.setStrokeWidth(2.0f);
+
+        mHourHandPaintDimmed = new Paint();
+        mHourHandPaintDimmed.setColor(HAND_COLOR_DIMMED);
+        mHourHandPaintDimmed.setStrokeWidth(4.0f);
+
+        mMinuteHandPaintDimmed = new Paint();
+        mMinuteHandPaintDimmed.setColor(HAND_COLOR_DIMMED);
+        mMinuteHandPaintDimmed.setStrokeWidth(2.0f);
+
+        mDayPaintDimmed = new Paint();
+        mDayPaintDimmed.setColor(DAY_COLOR_DIMMED);
+
+        mNightPaintDimmed = new Paint();
+        mNightPaintDimmed.setColor(NIGHT_COLOR_DIMMED);
+
+        mCirclePaintDimmed = new Paint();
+        mCirclePaintDimmed.setColor(HAND_COLOR_DIMMED);
+
+        mMoonPaintDimmed = new Paint();
+        mMoonPaintDimmed.setColor(HAND_COLOR_DIMMED);
+        mMoonPaintDimmed.setStyle(Paint.Style.STROKE);
+        mMoonPaintDimmed.setStrokeWidth(2.0f);
     }
 
     public DateTime getTime() {
@@ -199,21 +234,28 @@ public class ClockView extends View {
 
         // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
         // antialiasing on the day and night sections won't produce white line artifacts.
-        fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
-                mSunriseSunsetHandPaint, c) ;
-        fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
-                mSunriseSunsetHandPaint, c);
+        if (!mDimmed) {
+            fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
+                    mSunriseSunsetHandPaint, c);
+            fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
+                    mSunriseSunsetHandPaint, c);
 
-        fillArc(fractionOfDay(mAstroDawnTime) - 0.01, fractionOfDay(mDawnTime), mAstroTwilightPaint, c);
-        fillArc(fractionOfDay(mDuskTime), Math.min(fractionOfDay(mAstroDuskTime) + .01, 1.0),
-                mAstroTwilightPaint, c);
+            fillArc(fractionOfDay(mAstroDawnTime) - 0.01, fractionOfDay(mDawnTime),
+                    mAstroTwilightPaint, c);
+            fillArc(fractionOfDay(mDuskTime), Math.min(fractionOfDay(mAstroDuskTime) + .01, 1.0),
+                    mAstroTwilightPaint, c);
 
-        fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
-                mDayPaint, c);
-        fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
-                mNightPaint, c);
+            fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
+                    mDayPaint, c);
+            fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
+                    mNightPaint, c);
 
-        c.drawRect(0, 0, getWidth(), getHeight(), mVignettePaint);
+            c.drawRect(0, 0, getWidth(), getHeight(), mVignettePaint);
+        } else {
+            fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
+                    mNightPaintDimmed, c);
+            fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime), mDayPaintDimmed, c);
+        }
 
         // Draw dots on every hour
         for (int i = 0; i < 24; ++i) {
@@ -229,22 +271,25 @@ public class ClockView extends View {
             }
             dotRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dotRadius, dm);
 
-            c.drawCircle(dest.x, dest.y, dotRadius, mCirclePaint);
+            c.drawCircle(dest.x, dest.y, dotRadius, mDimmed ? mCirclePaintDimmed : mCirclePaint);
         }
 
-         //Draw moonrise and moonset
-         drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime),
-                 r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, c);
+        Paint moonPaint = mDimmed ? mMoonPaintDimmed : mMoonPaint;
+        //Draw moonrise and moonset
+        drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime),
+                 r - dpToPx(MOONRISE_EDGE_DISTANCE), moonPaint, c);
 
         // Draw tides
         for (Pair<DateTime, DateTime> risingTide : findRisingTides()) {
             drawArc(fractionOfDay(risingTide.first), fractionOfDay(risingTide.second),
-                    r - dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, c);
+                    r - dpToPx(TIDE_EDGE_DISTANCE), moonPaint, c);
         }
 
         int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
-        drawHand(fractionOfDay(mTime), centerX, centerY, (int)(handLength * 0.8), mHourHandPaint, c);
-        drawHand(fractionOfHour(mTime), centerX, centerY, handLength, mMinuteHandPaint, c);
+        drawHand(fractionOfDay(mTime), centerX, centerY, (int)(handLength * 0.8),
+                mDimmed ? mHourHandPaintDimmed : mHourHandPaint, c);
+        drawHand(fractionOfHour(mTime), centerX, centerY, handLength,
+                mDimmed ? mMinuteHandPaintDimmed : mMinuteHandPaint, c);
     }
 
     protected void onSizeChanged (int w, int h, int oldw, int oldh) {
@@ -393,5 +438,10 @@ public class ClockView extends View {
             currentHigh++;
         }
         return risingTides;
+    }
+
+    public void setDimmed(boolean dimmed) {
+        mDimmed = dimmed;
+        if (!mHeld) invalidate();
     }
 }

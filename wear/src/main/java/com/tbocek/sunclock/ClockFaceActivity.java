@@ -199,11 +199,28 @@ public class ClockFaceActivity extends Activity {
 
     private void updateTime() {
         if (mClockView == null) return;
+        mClockView.setDimmed(isDimmed());
         DateTime currentTime = new DateTime(DateTimeZone.forID("America/Los_Angeles"));
         mClockView.setTime(currentTime);
         if (mLastSunriseUpdateTime == null ||
                 mLastSunriseUpdateTime.getDayOfYear() != currentTime.getDayOfYear()) {
             resetSunriseAndSunsetTimes();
         }
+    }
+
+    private void setDimmed() {
+        // set the dimmed flag
+        this.getSharedPreferences("com.tbocek.sunclock.prefs", MODE_PRIVATE).edit()
+                .putBoolean("dimmed", true).commit();
+    }
+
+    private void setBright() {
+        this.getSharedPreferences("com.tbocek.sunclock.prefs", MODE_PRIVATE).edit()
+                .putBoolean("dimmed", false).commit();
+    }
+
+    private boolean isDimmed() {
+        return this.getSharedPreferences("com.tbocek.sunclock.prefs", MODE_PRIVATE)
+                .getBoolean("dimmed", false);
     }
 }

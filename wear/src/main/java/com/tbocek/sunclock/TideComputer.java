@@ -21,7 +21,7 @@ import java.util.List;
 public class TideComputer {
     private static final String TAG = "TideComputer";
 
-    private static final int DELTA_MINUTES = 1;
+    private static final int DELTA_MINUTES = 10;
     private static final int SAMPLES_IN_DERIVATIVE = 5;
 
     public enum ExtremaType {
