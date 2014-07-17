@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.display.DisplayManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Pair;
+import android.view.Display;
 
 import com.mhuss.AstroLib.AstroDate;
 import com.mhuss.AstroLib.Latitude;
@@ -23,13 +25,9 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 
 
-public class ClockFaceActivity extends Activity {
+public class ClockFaceActivity extends Activity implements DisplayManager.DisplayListener {
 
     private static final double SEATTLE_LAT = 47.68;
     private static final double SEATTLE_LONG = -122.21;
@@ -44,6 +42,8 @@ public class ClockFaceActivity extends Activity {
     private BroadcastReceiver mTimeUpdateReceiver;
 
     private TideComputer mTideComputer;
+
+    private DisplayManager mDisplayManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,6 +195,8 @@ public class ClockFaceActivity extends Activity {
                 }
             }
         };
+        mDisplayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        mDisplayManager.registerDisplayListener(this, null);
     }
 
     private void updateTime() {
@@ -224,5 +226,21 @@ public class ClockFaceActivity extends Activity {
     private boolean isDimmed() {
         return this.getSharedPreferences("com.tbocek.sunclock.prefs", MODE_PRIVATE)
                 .getBoolean("dimmed", false);
+    }
+
+    @Override
+    public void onDisplayAdded(int displayId) { }
+
+    @Override
+    public void onDisplayRemoved(int displayId) { }
+
+    @Override
+    public void onDisplayChanged(int displayId) {
+        int state = mDisplayManager.getDisplay(displayId).getState();
+        if (Display.STATE_DOZING == state) {
+            setDimmed();
+        } else if (Display.STATE_OFF != state) {
+            setBright();
+        }
     }
 }
