@@ -36,8 +36,8 @@ public class ClockView extends View {
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
 
     private static final int HAND_COLOR_DIMMED = Color.YELLOW;
-    private static final int DAY_COLOR_DIMMED = Color.LTGRAY;
-    private static final int NIGHT_COLOR_DIMMED = Color.BLUE;
+    private static final int DAY_COLOR_DIMMED = Color.BLUE;
+    private static final int NIGHT_COLOR_DIMMED = Color.BLACK;
 
     public static final int LARGE_DOT_RADIUS = 6;
     public static final int MEDIUM_DOT_RADIUS = 3;
@@ -380,10 +380,10 @@ public class ClockView extends View {
                 p.lineTo(getWidth(), 0);
             }
 
-            if (fraction2 > 7.0 / 8 && fraction1 < 7.0 / 8) {
+            if (fraction1 < 7.0 / 8 && fraction2 < 7.0 / 8) {
                 p.lineTo(0, 0);
             }
-            if (fraction2 > 5.0 / 8 && fraction1 < 5.0 / 8) {
+            if (fraction1 < 5.0 / 8 && fraction2 < 5.0 / 8) {
                 p.lineTo(0, getHeight());
             }
             p.lineTo(startPoint.x, startPoint.y);
