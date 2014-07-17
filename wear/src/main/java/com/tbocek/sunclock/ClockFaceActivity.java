@@ -212,11 +212,13 @@ public class ClockFaceActivity extends Activity {
         // set the dimmed flag
         this.getSharedPreferences("com.tbocek.sunclock.prefs", MODE_PRIVATE).edit()
                 .putBoolean("dimmed", true).commit();
+        mClockView.setDimmed(true);
     }
 
     private void setBright() {
         this.getSharedPreferences("com.tbocek.sunclock.prefs", MODE_PRIVATE).edit()
                 .putBoolean("dimmed", false).commit();
+        mClockView.setDimmed(false);
     }
 
     private boolean isDimmed() {
