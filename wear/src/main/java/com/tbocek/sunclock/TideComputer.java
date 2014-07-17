@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.tideengine.BackEndTideComputer;
 import com.tideengine.Coefficient;
+import com.tideengine.Harmonic;
 import com.tideengine.TideStation;
 import com.tideengine.TideUtilities;
 
@@ -69,6 +70,8 @@ public class TideComputer {
     public List<TideExtreme> getExtrema(DateTime startingTime, int numberOfHours) {
         List<TideExtreme> ret = new ArrayList<TideExtreme>();
 
+        logTideStation(mTideStation, mSpeedCoefficients);
+
         // Allocate an array of samples. We need
         double[] samples = new double[SAMPLES_IN_DERIVATIVE + 1];
         for (int i = 0; i < samples.length; ++i) {
@@ -85,7 +88,7 @@ public class TideComputer {
             } catch (Exception e) {
                 throw new RuntimeException("Could not compute tide level for t=" + t.toString(), e);
             }
-            Log.i(TAG, "Water Height at " + t.toString() + " : "+ Double.toString(waterHeight));
+            Log.d(TAG, "Water Height at " + t.toString() + " : " + Double.toString(waterHeight));
 
             addSample(samples, waterHeight);
 
@@ -97,13 +100,13 @@ public class TideComputer {
             if (derivative1 != Float.NaN && derivative2 != Float.NaN) {
                 // Local maximum
                 if (derivative1 > 0 && derivative2 < 0) {
-                    Log.i(TAG, "HIGH!");
+                    Log.d(TAG, "HIGH!");
                     ret.add(new TideExtreme(t.minusMinutes(samples.length * DELTA_MINUTES / 2),
                             ExtremaType.HIGH_TIDE));
                 }
                 // Local minimum
                 if (derivative1 < 0 && derivative2 > 0) {
-                    Log.i(TAG, "LOW!");
+                    Log.d(TAG, "LOW!");
                     ret.add(new TideExtreme(t.minusMinutes(samples.length * DELTA_MINUTES / 2),
                             ExtremaType.LOW_TIDE));
                 }
@@ -128,5 +131,16 @@ public class TideComputer {
      */
     public double firstDerivativeSign(double[] samples, int i) {
         return samples[i] - 8 * samples[i + 1] + 8 * samples[i + 3] - samples[i + 4];
+    }
+
+    private void logTideStation(TideStation tideStation, List<Coefficient> speedCoefficients) {
+        Log.d(TAG, "USING CONSTITUENTS:");
+        for(Coefficient c : speedCoefficients) {
+            Log.d(TAG, c.getName() + " : " + c.getValue());
+        }
+        Log.d(TAG, "USING HARMONICS:");
+        for (Harmonic h: tideStation.getHarmonics()) {
+            Log.d(TAG, h.getName() + " : " + h.getAmplitude() + " : " + h.getEpoch());
+        }
     }
 }
