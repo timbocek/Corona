@@ -23,4 +23,9 @@
         android:title="@string/pref_lookup_location"
         android:summary="@string/pref_description_lookup_location" />
 
+    <Preference
+        android:key="tide_station"
+        android:title="Tide Station"
+        android:summary="Tide station to compute tides at." />
+
 </PreferenceScreen>

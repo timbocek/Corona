@@ -207,8 +207,33 @@ public class SettingsActivity extends PreferenceActivity {
                             return true;
                         }
             });
+
+            findPreference("tide_station").setOnPreferenceClickListener(
+                    new Preference.OnPreferenceClickListener() {
+                        @Override
+                        public boolean onPreferenceClick(Preference preference) {
+                            selectTideStation();
+                            return true;
+                        }
+            });
+
+            findPreference("auto_location").setOnPreferenceChangeListener(
+                    new Preference.OnPreferenceChangeListener() {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            boolean auto = (Boolean) newValue;
+
+                            findPreference("custom_latitude").setEnabled(!auto);
+                            findPreference("custom_longitude").setEnabled(!auto);
+                            findPreference("lookup_location").setEnabled(!auto);
+
+                            return true;
+                        }
+            });
         }
 
+        private void selectTideStation() {
+        }
 
         private void lookupLocation() {
             if (!Geocoder.isPresent()) {
