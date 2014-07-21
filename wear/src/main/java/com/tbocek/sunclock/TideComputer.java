@@ -22,8 +22,8 @@ import java.util.List;
 public class TideComputer {
     private static final String TAG = "TideComputer";
 
-    private static final int DELTA_MINUTES = 10;
-    private static final int SAMPLES_IN_DERIVATIVE = 5;
+    private static final int DELTA_MINUTES = 1;
+    private static final int SAMPLES_IN_DERIVATIVE = 2;
 
     public enum ExtremaType {
         HIGH_TIDE,
@@ -130,7 +130,7 @@ public class TideComputer {
      * @return
      */
     public double firstDerivativeSign(double[] samples, int i) {
-        return samples[i] - 8 * samples[i + 1] + 8 * samples[i + 3] - samples[i + 4];
+        return samples[i + 1] - samples[i];
     }
 
     private void logTideStation(TideStation tideStation, List<Coefficient> speedCoefficients) {

@@ -304,7 +304,8 @@ public class BackEndXMLTideComputer
         constituent = new Constituents.ConstSpeed(coeffIdx, coeffName, coeffValue);        
         coeffName = null;
         coeffIdx = -1;
-        coeffValue = Double.NaN;        
+        coeffValue = Double.NaN;
+        coeffValueStr = null;
       }      
       
       if (foundConstituent && "const-speed".equals(qName))
@@ -313,6 +314,7 @@ public class BackEndXMLTideComputer
         coeffName = null;
         coeffIdx = -1;
         coeffValue = Double.NaN;
+        coeffValueStr = null;
         constituents.getConstSpeedMap().put(constituent.getCoeffName(), constituent);
       }
       else if ("coeff-name".equals(qName))
@@ -332,7 +334,7 @@ public class BackEndXMLTideComputer
       }
       else if ("factor".equals(qName) && foundFactor)
       {
-          value = Double.parseDouble(valueStr);
+        value = Double.parseDouble(valueStr);
         constituent.getFactors().put(new Integer(year), value);
         foundFactor = false;
         valueStr = "";
