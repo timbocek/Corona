@@ -233,6 +233,7 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         private void selectTideStation() {
+
         }
 
         private void lookupLocation() {
