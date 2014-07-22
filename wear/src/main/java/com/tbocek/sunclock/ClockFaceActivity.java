@@ -124,6 +124,10 @@ public class ClockFaceActivity extends Activity implements DisplayManager.Displa
     }
 
     private DateTime changeDayFraction(DateTime t, double dayFraction) {
+        while (dayFraction < 0) {
+            t = t.minusDays(1);
+            dayFraction += 1;
+        }
         int secondsInDay = (int) ((60 * 60 * 24) * dayFraction);
         int secondsInMinute = secondsInDay % 60;
         int minutes = (secondsInDay / 60) % 60;
