@@ -4,15 +4,18 @@
         android:key="watch_background_data"
         android:title="Watch Background Data"
         android:entries="@array/datatype"
+        android:entrieValuess="@array/datatype"
         android:defaultValue="Sun"/>
     <ListPreference
         android:key="outer_ring_data"
         android:title="Outer Ring Data"
         android:entries="@array/datatype"
+        android:entrieValuess="@array/datatype"
         android:defaultValue="Moon"/>
     <ListPreference
         android:key="inner_ring_data"
         android:title="Inner Ring Data"
         android:entries="@array/datatype"
+        android:entrieValuess="@array/datatype"
         android:defaultValue="Tides"/>
 </PreferenceScreen>
