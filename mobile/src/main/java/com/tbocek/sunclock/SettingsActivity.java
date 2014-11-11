@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Address;
 import android.location.Geocoder;
@@ -208,10 +209,12 @@ public class SettingsActivity extends PreferenceActivity {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static class LocationPreferenceFragment extends PreferenceFragment {
         private static final String TAG = "GeneralPreferenceFragment";
+        private WearDataLayer mDataLayer;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            mDataLayer = new WearDataLayer(getActivity());
             addPreferencesFromResource(R.xml.pref_locations);
 
             findPreference("lookup_location").setOnPreferenceClickListener(
@@ -221,7 +224,7 @@ public class SettingsActivity extends PreferenceActivity {
                             lookupLocation();
                             return true;
                         }
-            });
+                    });
 
             findPreference("tide_station").setOnPreferenceClickListener(
                     new Preference.OnPreferenceClickListener() {
@@ -241,11 +244,39 @@ public class SettingsActivity extends PreferenceActivity {
 
                             return true;
                         }
-            });
+                    });
+
+            findPreference("custom_latitude").setOnPreferenceChangeListener(
+                    new Preference.OnPreferenceChangeListener() {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            sendLocation();
+                            return true;
+                        }
+                    }
+            );
+
+            findPreference("custom_longitude").setOnPreferenceChangeListener(
+                    new Preference.OnPreferenceChangeListener() {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            sendLocation();
+                            return true;
+                        }
+                    }
+            );
 
             enableManualLocationControls(
                     !getPreferenceManager().getSharedPreferences().getBoolean(
                             "auto_location", true));
+        }
+
+        private void sendLocation() {
+            SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
+            mDataLayer.sendLocation(
+                Double.parseDouble(prefs.getString("custom_latitude", "0")),
+                Double.parseDouble(prefs.getString("custom_longitude", "0"))
+            );
         }
 
         private void enableManualLocationControls(boolean enabled) {
@@ -306,6 +337,8 @@ public class SettingsActivity extends PreferenceActivity {
                                             "Location set to " + Joiner.on(", ").skipNulls()
                                                     .join(locationDesc),
                                             Toast.LENGTH_LONG).show();
+                                    mDataLayer.sendLocation(lat, longi);
+
                                 } else {
                                     Toast.makeText(
                                             getActivity(),
