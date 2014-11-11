@@ -234,14 +234,21 @@ public class SettingsActivity extends PreferenceActivity {
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
                             boolean auto = (Boolean) newValue;
-
-                            findPreference("custom_latitude").setEnabled(!auto);
-                            findPreference("custom_longitude").setEnabled(!auto);
-                            findPreference("lookup_location").setEnabled(!auto);
+                            enableManualLocationControls(!auto);
 
                             return true;
                         }
             });
+
+            enableManualLocationControls(
+                    !getPreferenceManager().getSharedPreferences().getBoolean(
+                            "auto_location", true));
+        }
+
+        private void enableManualLocationControls(boolean enabled) {
+            findPreference("custom_latitude").setEnabled(enabled);
+            findPreference("custom_longitude").setEnabled(enabled);
+            findPreference("lookup_location").setEnabled(enabled);
         }
 
         private void selectTideStation() {
@@ -252,6 +259,7 @@ public class SettingsActivity extends PreferenceActivity {
             if (!Geocoder.isPresent()) {
                 Toast.makeText(getActivity(), getString(R.string.lookup_location_no_geocoder),
                                Toast.LENGTH_LONG).show();
+                return;
             }
 
             LayoutInflater inflater = getActivity().getLayoutInflater();
