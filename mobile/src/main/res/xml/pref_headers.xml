@@ -1,7 +1,11 @@
 <preference-headers
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <header android:fragment="com.tbocek.sunclock.SettingsActivity$GeneralPreferenceFragment"
-        android:title="General"
-        android:summary="General prefs" />
+    <header android:fragment="com.tbocek.sunclock.SettingsActivity$DisplayPreferenceFragment"
+        android:title="Display"
+        android:summary="Determine what data is displayed on the watch face" />
+
+    <header android:fragment="com.tbocek.sunclock.SettingsActivity$LocationPreferenceFragment"
+        android:title="Location"
+        android:summary="Pick your location and tide station (or use auto)" />
 </preference-headers>

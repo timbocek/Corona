@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <CheckBoxPreference
@@ -6,22 +7,20 @@
         android:summary="@string/pref_description_auto_location"
         android:defaultValue="true" />
 
-    <EditTextPreference
-        android:key="custom_latitude"
-        android:title="@string/pref_custom_latitude"
-        android:summary="@string/pref_description_custom_latitude"
-        android:defaultValue="true" />
-
-    <EditTextPreference
-        android:key="custom_longitude"
-        android:title="@string/pref_custom_longitude"
-        android:summary="@string/pref_description_custom_longitude"
-        android:defaultValue="true" />
-
     <Preference
         android:key="lookup_location"
         android:title="@string/pref_lookup_location"
         android:summary="@string/pref_description_lookup_location" />
+
+    <EditTextPreference
+        android:key="custom_latitude"
+        android:title="@string/pref_custom_latitude"
+        android:summary="@string/pref_description_custom_latitude" />
+
+    <EditTextPreference
+        android:key="custom_longitude"
+        android:title="@string/pref_custom_longitude"
+        android:summary="@string/pref_description_custom_longitude" />
 
     <Preference
         android:key="tide_station"

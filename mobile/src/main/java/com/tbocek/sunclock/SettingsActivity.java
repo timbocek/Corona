@@ -51,6 +51,18 @@ public class SettingsActivity extends PreferenceActivity {
      */
     private static final boolean ALWAYS_SIMPLE_PREFS = false;
 
+    private static final String[] VALID_FRAGMENTS = new String[] {
+        LocationPreferenceFragment.class.getName(),
+        DisplayPreferenceFragment.class.getName()
+    };
+
+    @Override
+    protected boolean isValidFragment(String fragmentName) {
+        for (String fragName : VALID_FRAGMENTS) {
+            if (fragName.equals(fragmentName)) return true;
+        }
+        return false;
+    }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -73,7 +85,8 @@ public class SettingsActivity extends PreferenceActivity {
         // use the older PreferenceActivity APIs.
 
         // Add 'general' preferences.
-        addPreferencesFromResource(R.xml.pref_general);
+        addPreferencesFromResource(R.xml.pref_display);
+        addPreferencesFromResource(R.xml.pref_locations);
     }
 
     /** {@inheritDoc} */
@@ -100,8 +113,7 @@ public class SettingsActivity extends PreferenceActivity {
      */
     private static boolean isSimplePreferences(Context context) {
         return ALWAYS_SIMPLE_PREFS
-                || Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB
-                || !isXLargeTablet(context);
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB;
     }
 
     /** {@inheritDoc} */
@@ -191,13 +203,13 @@ public class SettingsActivity extends PreferenceActivity {
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class GeneralPreferenceFragment extends PreferenceFragment {
+    public static class LocationPreferenceFragment extends PreferenceFragment {
         private static final String TAG = "GeneralPreferenceFragment";
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_general);
+            addPreferencesFromResource(R.xml.pref_locations);
 
             findPreference("lookup_location").setOnPreferenceClickListener(
                     new Preference.OnPreferenceClickListener() {
@@ -293,6 +305,46 @@ public class SettingsActivity extends PreferenceActivity {
                             }
                     )
                     .show();
+        }
+    }
+
+    /**
+     * This fragment shows general preferences only. It is used when the
+     * activity is showing a two-pane settings UI.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public static class DisplayPreferenceFragment extends PreferenceFragment {
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.pref_display);
+
+            findPreference("watch_background_data").setOnPreferenceChangeListener(
+                    new Preference.OnPreferenceChangeListener() {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            return true;
+                        }
+                    }
+            );
+
+            findPreference("outer_ring_data").setOnPreferenceChangeListener(
+                    new Preference.OnPreferenceChangeListener() {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            return true;
+                        }
+                    }
+            );
+
+            findPreference("inner_ring_data").setOnPreferenceChangeListener(
+                    new Preference.OnPreferenceChangeListener() {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            return true;
+                        }
+                    }
+            );
         }
     }
 }

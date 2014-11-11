@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="watch_background_data"
+        android:title="Watch Background Data"
+        android:entries="@array/datatype"
+        android:defaultValue="Sun"/>
+    <ListPreference
+        android:key="outer_ring_data"
+        android:title="Outer Ring Data"
+        android:entries="@array/datatype"
+        android:defaultValue="Moon"/>
+    <ListPreference
+        android:key="inner_ring_data"
+        android:title="Inner Ring Data"
+        android:entries="@array/datatype"
+        android:defaultValue="Tides"/>
+</PreferenceScreen>

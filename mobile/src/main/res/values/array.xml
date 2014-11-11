@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="datatype">
+        <item>Sun</item>
+        <item>Moon</item>
+        <item>Tides</item>
+        <item>None</item>
+    </string-array>
+
+</resources>
