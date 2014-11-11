@@ -28,7 +28,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
+import com.google.common.base.Joiner;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -289,6 +292,20 @@ public class SettingsActivity extends PreferenceActivity {
 
                                     latPref.setText(Double.toString(lat));
                                     longPref.setText(Double.toString(longi));
+
+                                    List<String> locationDesc = new ArrayList<String>();
+                                    locationDesc.add(location.getSubLocality());
+                                    locationDesc.add(location.getLocality());
+                                    locationDesc.add(location.getAdminArea());
+                                    locationDesc.add(location.getCountryCode());
+                                    locationDesc.add("(" + Double.toString(lat));
+                                    locationDesc.add(Double.toString(longi) + ")");
+
+                                    Toast.makeText(
+                                            getActivity(),
+                                            "Location set to " + Joiner.on(", ").skipNulls()
+                                                    .join(locationDesc),
+                                            Toast.LENGTH_LONG).show();
                                 } else {
                                     Toast.makeText(
                                             getActivity(),
