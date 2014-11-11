@@ -25,7 +25,7 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
-    project(':java-tide-engine')
+    compile project(":java-tide-engine")
     compile 'com.google.android.gms:play-services-wearable:+'
     // You must install or update the Support Repository through the SDK manager to use this dependency.
     compile 'com.android.support:support-v4:20.+'
