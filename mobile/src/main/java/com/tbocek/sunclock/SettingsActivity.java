@@ -2,8 +2,10 @@ package com.tbocek.sunclock;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Address;
@@ -29,6 +31,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.common.base.Joiner;
 
 import java.io.IOException;
@@ -207,7 +217,11 @@ public class SettingsActivity extends PreferenceActivity {
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class LocationPreferenceFragment extends PreferenceFragment {
+    public static class LocationPreferenceFragment
+            extends PreferenceFragment
+            implements GoogleApiClient.ConnectionCallbacks,
+                       GoogleApiClient.OnConnectionFailedListener {
+
         private static final String TAG = "GeneralPreferenceFragment";
         private WearDataLayer mDataLayer;
 
@@ -269,13 +283,26 @@ public class SettingsActivity extends PreferenceActivity {
             enableManualLocationControls(
                     !getPreferenceManager().getSharedPreferences().getBoolean(
                             "auto_location", true));
+
+            mApiClient = new GoogleApiClient.Builder(this.getActivity().getApplicationContext())
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+            mConnectionInProgress = false;
+            Intent intent = new Intent(getActivity().getApplicationContext(),
+                    LocationSubscriber.class);
+            mLocationPendingIntent = PendingIntent.getService(
+                    getActivity().getApplicationContext(), 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+
         }
 
         private void sendLocation() {
             SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
             mDataLayer.sendLocation(
-                Double.parseDouble(prefs.getString("custom_latitude", "0")),
-                Double.parseDouble(prefs.getString("custom_longitude", "0"))
+                    Double.parseDouble(prefs.getString("custom_latitude", "0")),
+                    Double.parseDouble(prefs.getString("custom_longitude", "0"))
             );
         }
 
@@ -364,7 +391,62 @@ public class SettingsActivity extends PreferenceActivity {
                     )
                     .show();
         }
-    }
+
+
+        /// LOCATION UPDATE STUFF
+
+        /*
+         * Store the PendingIntent used to send activity recognition events
+         * back to the app
+         */
+        private PendingIntent mActivityRecognitionPendingIntent;
+        // Store the current activity recognition client
+        private GoogleApiClient mApiClient;
+        private boolean mConnectionInProgress;
+        PendingIntent mLocationPendingIntent;
+
+        @Override
+        public void onConnected(Bundle bundle) {
+
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mApiClient,
+                    LocationRequest.create().setPriority(LocationRequest.PRIORITY_NO_POWER)
+                            .setFastestInterval(10*60*100),
+                    mLocationPendingIntent
+            );
+            mConnectionInProgress = false;
+            mApiClient.disconnect();
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+
+        }
+
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        }
+
+        private boolean servicesConnected() {
+            int resultCode =
+                    GooglePlayServicesUtil.
+                            isGooglePlayServicesAvailable(getActivity());
+            return ConnectionResult.SUCCESS == resultCode;
+            // TODO: handle errors as described by the android docs.
+        }
+
+        private void startLocationUpdates() {
+            if (!mConnectionInProgress) {
+                mConnectionInProgress = true;
+                mApiClient.connect();
+            }
+        }
+
+        private void stopLocationUpdates() {
+
+        }
+    } // END LOCATION PREF FRAGMENT
 
     /**
      * This fragment shows general preferences only. It is used when the
