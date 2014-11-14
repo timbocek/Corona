@@ -481,6 +481,7 @@ public class SettingsActivity extends PreferenceActivity {
                     new Preference.OnPreferenceChangeListener() {
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            sendDisplayPreferences();
                             return true;
                         }
                     }
@@ -490,6 +491,7 @@ public class SettingsActivity extends PreferenceActivity {
                     new Preference.OnPreferenceChangeListener() {
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            sendDisplayPreferences();
                             return true;
                         }
                     }
@@ -499,10 +501,19 @@ public class SettingsActivity extends PreferenceActivity {
                     new Preference.OnPreferenceChangeListener() {
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            sendDisplayPreferences();
                             return true;
                         }
                     }
             );
+        }
+
+        private void sendDisplayPreferences() {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            new WearDataLayer(getActivity()).sendFaceConfiguration(
+                    prefs.getString("watch_background_data", "Sun"),
+                    prefs.getString("inner_ring_data", "Tides"),
+                    prefs.getString("outer_ring_data", "Moon"));
         }
     }
 }
