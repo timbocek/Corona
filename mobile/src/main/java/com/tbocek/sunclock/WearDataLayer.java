@@ -35,4 +35,15 @@ public class WearDataLayer {
                             Double.toString(longitude), Toast.LENGTH_LONG).show();
         }
     }
+
+    public void sendFaceConfiguration(String background_data,
+                                      String inner_ring_data,
+                                      String outer_ring_data) {
+        PutDataMapRequest data = PutDataMapRequest.create(WearDataDefs.FACE_CONFIGURATION);
+        data.getDataMap().putString(WearDataDefs.FACE_BACKGROUND_DATA, background_data);
+        data.getDataMap().putString(WearDataDefs.INNER_RING_DATA, inner_ring_data);
+        data.getDataMap().putString(WearDataDefs.OUTER_RING_DATA, outer_ring_data);
+
+        Wearable.DataApi.putDataItem(mApiClient, data.asPutDataRequest());
+    }
 }
