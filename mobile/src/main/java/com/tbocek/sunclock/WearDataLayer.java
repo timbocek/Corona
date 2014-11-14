@@ -3,7 +3,6 @@ package com.tbocek.sunclock;
 import android.content.Context;
 import android.widget.Toast;
 
-import com.example.WearDataDefs;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.Wearable;

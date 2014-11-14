@@ -1,4 +1,4 @@
-package com.example;
+package com.tbocek.sunclock;
 
 public class WearDataDefs {
     public static final String LOCATION_DATA = "/com/tbocek/sunclock/location";
