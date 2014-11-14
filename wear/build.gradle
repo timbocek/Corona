@@ -26,4 +26,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-wearable:+'
     compile project(":AstroLib")
     compile project(":java-tide-engine")
+    compile project(":common")
 }

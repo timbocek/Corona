@@ -84,8 +84,8 @@
     <orderEntry type="library" exported="" name="support-annotations-20.0.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-20.0.0" level="project" />
     <orderEntry type="library" exported="" name="guava-18.0" level="project" />
+    <orderEntry type="module" module-name="common" exported="" />
     <orderEntry type="module" module-name="java-tide-engine" exported="" />
-    <orderEntry type="module" module-name="common" />
   </component>
 </module>
 
