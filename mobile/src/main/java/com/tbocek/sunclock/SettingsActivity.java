@@ -301,8 +301,8 @@ public class SettingsActivity extends PreferenceActivity {
         private void sendLocation() {
             SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
             mDataLayer.sendLocation(
-                    Double.parseDouble(prefs.getString("custom_latitude", "0")),
-                    Double.parseDouble(prefs.getString("custom_longitude", "0"))
+                    prefs.getFloat("custom_latitude", 0),
+                    prefs.getFloat("custom_longitude", 0)
             );
         }
 
@@ -404,16 +404,29 @@ public class SettingsActivity extends PreferenceActivity {
         private GoogleApiClient mApiClient;
         private boolean mConnectionInProgress;
         PendingIntent mLocationPendingIntent;
+        public enum REQUEST_TYPE {START, STOP}
+        private REQUEST_TYPE mRequestType;
 
         @Override
         public void onConnected(Bundle bundle) {
 
-            LocationServices.FusedLocationApi.requestLocationUpdates(
-                    mApiClient,
-                    LocationRequest.create().setPriority(LocationRequest.PRIORITY_NO_POWER)
-                            .setFastestInterval(10*60*100),
-                    mLocationPendingIntent
-            );
+            switch(mRequestType) {
+                case START:
+                    LocationServices.FusedLocationApi.requestLocationUpdates(
+                            mApiClient,
+                            LocationRequest.create().setPriority(LocationRequest.PRIORITY_NO_POWER)
+                                    .setFastestInterval(10*60*100),
+                            mLocationPendingIntent
+                    );
+                    break;
+                case STOP:
+                    LocationServices.FusedLocationApi.removeLocationUpdates(
+                            mApiClient,
+                            mLocationPendingIntent
+                    );
+                    break;
+            }
+
             mConnectionInProgress = false;
             mApiClient.disconnect();
         }
@@ -437,6 +450,7 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         private void startLocationUpdates() {
+            mRequestType = REQUEST_TYPE.START;
             if (!mConnectionInProgress) {
                 mConnectionInProgress = true;
                 mApiClient.connect();
@@ -444,7 +458,11 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         private void stopLocationUpdates() {
-
+            mRequestType = REQUEST_TYPE.STOP;
+            if (!mConnectionInProgress) {
+                mConnectionInProgress = true;
+                mApiClient.connect();
+            }
         }
     } // END LOCATION PREF FRAGMENT
 
