@@ -15,5 +15,5 @@
     <string name="lookup_location_no_network">You must be connected to the Internet to use the geocoding features.</string>
     <string name="lookup_location_not_found">Could not match the entered location to a latitude and longitude.</string>
     <string name="within">Within</string>
-    <string name="tide_station_distance_default">10</string>
+    <string name="tide_station_distance_default">20</string>
 </resources>

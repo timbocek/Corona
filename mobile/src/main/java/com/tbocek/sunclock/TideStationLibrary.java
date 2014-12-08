@@ -5,11 +5,14 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.tideengine.BackEndTideComputer;
+import com.tideengine.BackEndXMLTideComputer;
+import com.tideengine.TideStation;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by tbocek on 7/21/14.
@@ -101,7 +104,7 @@ public class TideStationLibrary {
         }
 
         mLocationsComputedCallbacks.add(onSuccess);
-        ensureComputingDistances();
+        ensureComputingDistances(location);
     }
 
     public synchronized void requestFilter(
@@ -122,16 +125,14 @@ public class TideStationLibrary {
     }
 
     private synchronized void ensureLoading() {
-        if (mLoadStationsTask.getStatus() != AsyncTask.Status.RUNNING) {
-            mLoadStationsTask.execute();
+        if (mStations == null || mStations.isEmpty()) {
+            new LoadStationsTask().execute();
         }
     }
 
 
-    private void ensureComputingDistances() {
-        if (mComputeDistancesTask.getStatus() != AsyncTask.Status.RUNNING) {
-            mComputeDistancesTask.execute();
-        }
+    private void ensureComputingDistances(Location location) {
+        new ComputeDistancesTask().execute(location);
     }
 
     private class StationFilterParams {
@@ -152,12 +153,17 @@ public class TideStationLibrary {
         protected StationFilterResult doInBackground(StationFilterParams... params) {
             StationFilterParams filterParams = params[0];
             StationFilterResult result = new StationFilterResult();
+            result.filterCallback = filterParams.filterCallback;
 
             String nameFragmentLower = filterParams.nameFragment.toLowerCase();
+            Log.i(TAG, String.format("FILTERING %d STATIONS", mStations.size()));
             for (StationStub station: mStations) {
+                Log.i(TAG, String.format("Station %s %.2f km",
+                        station.getName(), station.getDistance() / 1000));
                 if (station.getDistance() > filterParams.distance) {
                     break;
                 }
+
                 if (station.getName().toLowerCase().contains(nameFragmentLower)) {
                     result.foundStations.add(station);
                 }
@@ -173,12 +179,19 @@ public class TideStationLibrary {
     }
     private StationFilterTask mStationFilterTask;
 
-    private AsyncTask<Void, Void, Boolean> mLoadStationsTask =
-            new AsyncTask<Void, Void, Boolean>() {
+
+    private class LoadStationsTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
                 BackEndTideComputer.connect();
+                Map<String, TideStation> stations = BackEndXMLTideComputer.getStationData();
+                for (TideStation station : stations.values()) {
+                    Location loc = new Location("");
+                    loc.setLatitude(station.getLatitude());
+                    loc.setLongitude(station.getLongitude());
+                    mStations.add(new StationStub(loc, station.getFullName()));
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Loading tide stations failed.", e);
                 return false;
@@ -197,8 +210,7 @@ public class TideStationLibrary {
         }
     };
 
-    private AsyncTask<Location, Void, Void> mComputeDistancesTask =
-            new AsyncTask<Location, Void, Void>() {
+    private class ComputeDistancesTask extends AsyncTask<Location, Void, Void> {
 
         @Override
         protected Void doInBackground(Location... params) {

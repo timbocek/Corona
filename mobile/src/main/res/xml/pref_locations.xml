@@ -10,17 +10,19 @@
     <Preference
         android:key="lookup_location"
         android:title="@string/pref_lookup_location"
-        android:summary="@string/pref_description_lookup_location" />
+        android:summary="@string/pref_description_lookup_location"/>
 
     <EditTextPreference
         android:key="custom_latitude"
         android:title="@string/pref_custom_latitude"
-        android:summary="@string/pref_description_custom_latitude" />
+        android:summary="@string/pref_description_custom_latitude"
+        android:defaultValue="0"/>
 
     <EditTextPreference
         android:key="custom_longitude"
         android:title="@string/pref_custom_longitude"
-        android:summary="@string/pref_description_custom_longitude" />
+        android:summary="@string/pref_description_custom_longitude"
+        android:defaultValue="0"/>
 
     <Preference
         android:key="tide_station"

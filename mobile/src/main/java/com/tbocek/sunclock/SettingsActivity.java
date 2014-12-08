@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -264,6 +265,7 @@ public class SettingsActivity extends PreferenceActivity {
                     new Preference.OnPreferenceChangeListener() {
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            Float.parseFloat((String)newValue);
                             sendLocation();
                             return true;
                         }
@@ -274,6 +276,7 @@ public class SettingsActivity extends PreferenceActivity {
                     new Preference.OnPreferenceChangeListener() {
                         @Override
                         public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            Float.parseFloat((String)newValue);
                             sendLocation();
                             return true;
                         }
@@ -301,8 +304,8 @@ public class SettingsActivity extends PreferenceActivity {
         private void sendLocation() {
             SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
             mDataLayer.sendLocation(
-                    prefs.getFloat("custom_latitude", 0),
-                    prefs.getFloat("custom_longitude", 0)
+                    Float.parseFloat(prefs.getString("custom_latitude", "0")),
+                    Float.parseFloat(prefs.getString("custom_longitude", "0"))
             );
         }
 
@@ -313,7 +316,17 @@ public class SettingsActivity extends PreferenceActivity {
         }
 
         private void selectTideStation() {
+            TideStationSelectorView view = new TideStationSelectorView(getActivity());
 
+            Location loc = new Location("");
+            SharedPreferences prefs = getPreferenceManager().getSharedPreferences();
+            loc.setLatitude(Float.parseFloat(prefs.getString("custom_latitude", "0")));
+            loc.setLongitude(Float.parseFloat(prefs.getString("custom_longitude", "0")));
+            view.setLocation(loc);
+
+            new AlertDialog.Builder(this.getActivity())
+                    .setView(view)
+                    .show();
         }
 
         private void lookupLocation() {
