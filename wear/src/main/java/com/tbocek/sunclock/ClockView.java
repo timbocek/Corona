@@ -35,8 +35,8 @@ public class ClockView extends View {
     private static final int HAND_COLOR = Color.parseColor("#F7D910");
     private static final int DOT_COLOR = Color.parseColor("#F7ED9B");
 
-    private static final int HAND_COLOR_DIMMED = Color.YELLOW;
-    private static final int DAY_COLOR_DIMMED = Color.BLUE;
+    private static final int HAND_COLOR_DIMMED = Color.WHITE;
+    private static final int DAY_COLOR_DIMMED = Color.DKGRAY;
     private static final int NIGHT_COLOR_DIMMED = Color.BLACK;
 
     public static final int LARGE_DOT_RADIUS = 6;
