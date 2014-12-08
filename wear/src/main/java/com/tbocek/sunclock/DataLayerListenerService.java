@@ -16,7 +16,8 @@ public class DataLayerListenerService extends WearableListenerService {
     public void onDataChanged(DataEventBuffer dataEvents) {
         for (DataEvent event : dataEvents) {
             DataItem item = event.getDataItem();
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences();
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
+                    getApplicationContext());
             if (item.getUri().equals(WearDataDefs.LOCATION_DATA)) {
                 DataMap data = DataMap.fromByteArray(item.getData());
                 double latitude = data.getDouble(WearDataDefs.LATITUDE);
