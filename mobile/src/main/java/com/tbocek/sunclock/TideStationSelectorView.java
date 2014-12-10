@@ -44,7 +44,7 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
                 (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = layoutInflater.inflate(R.layout.lookup_tide_station, this);
 
-        TideStationLibrary.instance().requestTideStations(
+        TideStationLibrary.instance().requestTideStations(getContext(),
                 new TideStationLibrary.TideStationsLoadedCallback() {
 
                     @Override
@@ -63,7 +63,7 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
 
     public void setLocation(final Location location) {
         setLoading(true);
-        TideStationLibrary.instance().requestTideStations(
+        TideStationLibrary.instance().requestTideStations(getContext(),
                 new TideStationLibrary.TideStationsLoadedCallback() {
 
                     @Override

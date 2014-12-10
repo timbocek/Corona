@@ -1,13 +1,20 @@
 package com.tbocek.sunclock;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.Xml;
 
 import com.tideengine.BackEndTideComputer;
 import com.tideengine.BackEndXMLTideComputer;
 import com.tideengine.TideStation;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +30,8 @@ public class TideStationLibrary {
         private Location mLocation;
         private String mName;
         private float mDistance = Float.NaN;
+
+        public StationStub() { }
 
         public StationStub(Location location, String name) {
             mLocation = location;
@@ -74,6 +83,7 @@ public class TideStationLibrary {
     }
 
     private boolean mStationsLoaded = false;
+    private boolean mStationsLoading = false;
 
     private List<TideStationsLoadedCallback> mStationsLoadedCallbacks =
             new ArrayList<TideStationsLoadedCallback>();
@@ -87,12 +97,13 @@ public class TideStationLibrary {
 
     private TideStationLibrary() { }
 
-    public synchronized void requestTideStations(TideStationsLoadedCallback onLoaded) {
+    public synchronized void requestTideStations(
+            Context context, TideStationsLoadedCallback onLoaded) {
         if (mStationsLoaded) {
             onLoaded.stationsLoaded(this, true);
         } else {
             mStationsLoadedCallbacks.add(onLoaded);
-            ensureLoading();
+            ensureLoading(context);
         }
     }
 
@@ -124,9 +135,10 @@ public class TideStationLibrary {
         return mStations;
     }
 
-    private synchronized void ensureLoading() {
-        if (mStations == null || mStations.isEmpty()) {
-            new LoadStationsTask().execute();
+    private synchronized void ensureLoading(Context context) {
+        if (mStations == null || mStations.isEmpty() && !mStationsLoading) {
+            new LoadStationsTask().execute(context.getApplicationContext());
+            mStationsLoading = true;
         }
     }
 
@@ -180,18 +192,16 @@ public class TideStationLibrary {
     private StationFilterTask mStationFilterTask;
 
 
-    private class LoadStationsTask extends AsyncTask<Void, Void, Boolean> {
+    private class LoadStationsTask extends AsyncTask<Context, Void, Boolean> {
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Boolean doInBackground(Context... params) {
             try {
-                BackEndTideComputer.connect();
-                Map<String, TideStation> stations = BackEndXMLTideComputer.getStationData();
-                for (TideStation station : stations.values()) {
-                    Location loc = new Location("");
-                    loc.setLatitude(station.getLatitude());
-                    loc.setLongitude(station.getLongitude());
-                    mStations.add(new StationStub(loc, station.getFullName()));
-                }
+
+                InputStream in = ((Context)params[0]).getResources().openRawResource(R.raw.stations);
+                XmlPullParser parser = Xml.newPullParser();
+                parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+                parser.setInput(in, null);
+                mStations.addAll(getTideStationStubs(parser));
             } catch (Exception e) {
                 Log.e(TAG, "Loading tide stations failed.", e);
                 return false;
@@ -217,7 +227,8 @@ public class TideStationLibrary {
             Location location = params[0];
 
             for (StationStub station: mStations) {
-                station.setDistance(station.getLocation().distanceTo(location));
+                if (station.getLocation() != null)
+                    station.setDistance(station.getLocation().distanceTo(location));
             }
 
             Collections.sort(mStations, new Comparator<StationStub>() {
@@ -240,4 +251,27 @@ public class TideStationLibrary {
             }
         }
     };
+
+    private static List<StationStub> getTideStationStubs(XmlPullParser parser) throws XmlPullParserException, IOException {
+        List<StationStub> stations = new ArrayList<StationStub>();
+
+        StationStub currentStation = null;
+        while (parser.next() != XmlPullParser.END_DOCUMENT) {
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
+                String name = parser.getName();
+                if (name.equals("station")) {
+                    currentStation = new StationStub();
+                    stations.add(currentStation);
+                    currentStation.setName(parser.getAttributeValue(null, "name"));
+                } else if (name.equals("position")) {
+                    Location l = new Location("");
+                    l.setLatitude(Double.parseDouble(parser.getAttributeValue(null, "latitude")));
+                    l.setLongitude(Double.parseDouble(parser.getAttributeValue(null, "longitude")));
+                    if (currentStation != null)
+                        currentStation.setLocation(l);
+                }
+            }
+        }
+        return stations;
+    }
 }
