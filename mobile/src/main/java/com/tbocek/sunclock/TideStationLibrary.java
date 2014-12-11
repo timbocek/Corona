@@ -270,12 +270,13 @@ public class TideStationLibrary {
                     currentStation = new StationStub();
                     stations.add(currentStation);
                     currentStation.setName(parser.getAttributeValue(null, "name"));
-                } else if (name.equals("position")) {
+                } else if (name.startsWith("p")) {  // Only tag that matches is "position"
                     Location l = new Location("");
                     l.setLatitude(Double.parseDouble(parser.getAttributeValue(null, "latitude")));
                     l.setLongitude(Double.parseDouble(parser.getAttributeValue(null, "longitude")));
                     if (currentStation != null)
                         currentStation.setLocation(l);
+                    skip(parser, 1);  // We have the data we need, skip rest of the station tag
                 } else {
                     skip(parser);
                 }
@@ -284,11 +285,11 @@ public class TideStationLibrary {
         return stations;
     }
 
-    private static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
+    private static void skip(XmlPullParser parser, int upLevels) throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {
             throw new IllegalStateException();
         }
-        int depth = 1;
+        int depth = 1 + upLevels;
         while (depth != 0) {
             switch (parser.next()) {
                 case XmlPullParser.END_TAG:
@@ -299,5 +300,9 @@ public class TideStationLibrary {
                     break;
             }
         }
+    }
+
+    private static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
+        skip(parser, 0);
     }
 }
