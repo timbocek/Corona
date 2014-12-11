@@ -196,12 +196,13 @@ public class TideStationLibrary {
         @Override
         protected Boolean doInBackground(Context... params) {
             try {
-
+                Log.i(TAG, "START TIDE STATION PARSE");
                 InputStream in = ((Context)params[0]).getResources().openRawResource(R.raw.stations);
                 XmlPullParser parser = Xml.newPullParser();
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
                 parser.setInput(in, null);
                 mStations.addAll(getTideStationStubs(parser));
+                Log.i(TAG, "END TIDE STATION PARSE");
             } catch (Exception e) {
                 Log.e(TAG, "Loading tide stations failed.", e);
                 return false;
@@ -258,6 +259,10 @@ public class TideStationLibrary {
         List<StationStub> stations = new ArrayList<StationStub>();
 
         StationStub currentStation = null;
+
+        // Consume events up to the Stations tag
+        while (parser.next() != XmlPullParser.START_TAG && parser.getName() != "stations") { }
+
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             if (parser.getEventType() == XmlPullParser.START_TAG) {
                 String name = parser.getName();
@@ -271,9 +276,28 @@ public class TideStationLibrary {
                     l.setLongitude(Double.parseDouble(parser.getAttributeValue(null, "longitude")));
                     if (currentStation != null)
                         currentStation.setLocation(l);
+                } else {
+                    skip(parser);
                 }
             }
         }
         return stations;
+    }
+
+    private static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
+        if (parser.getEventType() != XmlPullParser.START_TAG) {
+            throw new IllegalStateException();
+        }
+        int depth = 1;
+        while (depth != 0) {
+            switch (parser.next()) {
+                case XmlPullParser.END_TAG:
+                    depth--;
+                    break;
+                case XmlPullParser.START_TAG:
+                    depth++;
+                    break;
+            }
+        }
     }
 }
