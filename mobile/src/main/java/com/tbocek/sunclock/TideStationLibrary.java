@@ -216,6 +216,8 @@ public class TideStationLibrary {
                     r.stationsLoaded(TideStationLibrary.this, succeeded);
                 }
                 mStationsLoadedCallbacks.clear();
+                mStationsLoaded = true;
+                mStationsLoading = false;
             }
         }
     };

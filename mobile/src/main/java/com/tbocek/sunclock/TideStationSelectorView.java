@@ -106,8 +106,15 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
     }
 
     private void startFilterStations() {
+        float distance;
+        try {
+            distance = Float.parseFloat(mDistance.getText().toString()) * 1000;
+        } catch (Exception e) {
+            return;
+        }
+
         TideStationLibrary.instance().requestFilter(
-                Float.parseFloat(mDistance.getText().toString()) * 1000,
+                distance,
                 mFilter.getText().toString(),
                 new TideStationLibrary.TideStationsFilterCallback() {
                     @Override
