@@ -2,6 +2,7 @@ package com.tbocek.sunclock;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -324,9 +325,18 @@ public class SettingsActivity extends PreferenceActivity {
             loc.setLongitude(Float.parseFloat(prefs.getString("custom_longitude", "0")));
             view.setLocation(loc);
 
-            new AlertDialog.Builder(this.getActivity())
-                    .setView(view)
-                    .show();
+            final Dialog dlg = new AlertDialog.Builder(this.getActivity())
+                    .setView(view).create();
+
+            view.setOnTideStationSelected(
+                    new TideStationSelectorView.OnTideStationSelectedListener() {
+                @Override
+                public void stationSelected(TideStationLibrary.StationStub station) {
+                    dlg.dismiss();
+                }
+            });
+
+            dlg.show();
         }
 
         private void lookupLocation() {

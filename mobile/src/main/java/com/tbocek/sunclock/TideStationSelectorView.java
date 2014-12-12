@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -19,10 +20,15 @@ import java.util.List;
 
 
 public class TideStationSelectorView extends LinearLayout implements TextWatcher {
+    public interface OnTideStationSelectedListener {
+        public void stationSelected(TideStationLibrary.StationStub station);
+    }
 
     private EditText mDistance;
     private EditText mFilter;
     private ListView mStationsList;
+
+    private OnTideStationSelectedListener mOnTideStationSelected;
 
     public TideStationSelectorView(Context context) {
         super(context);
@@ -37,6 +43,10 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
     public TideStationSelectorView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
+    }
+
+    public void setOnTideStationSelected(OnTideStationSelectedListener mOnTideStationSelected) {
+        this.mOnTideStationSelected = mOnTideStationSelected;
     }
 
     private void init() {
@@ -59,6 +69,21 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
 
         mDistance.addTextChangedListener(this);
         mFilter.addTextChangedListener(this);
+
+        mStationsList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                TideStationLibrary.StationStub station = (TideStationLibrary.StationStub)
+                        mStationsList.getAdapter().getItem(position);
+                mOnTideStationSelected.stationSelected(station);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     public void setLocation(final Location location) {
