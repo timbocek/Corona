@@ -6,8 +6,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
 
-import com.tideengine.BackEndTideComputer;
-import com.tideengine.BackEndXMLTideComputer;
 import com.tideengine.TideStation;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -19,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by tbocek on 7/21/14.
@@ -71,6 +68,10 @@ public class TideStationLibrary {
 
     interface TideStationsFilterCallback {
         void stationsLoaded(List<StationStub> foundStations);
+    }
+
+    interface SingleTideStationLoadedCallback {
+        void loaded(TideStation tideStation);
     }
 
     private static TideStationLibrary sInstance = null;
@@ -129,6 +130,15 @@ public class TideStationLibrary {
         params.nameFragment = nameFragment;
         params.filterCallback = cb;
         mStationFilterTask.execute(params);
+    }
+
+    public void loadSingleTideStation(Context context, String name, SingleTideStationLoadedCallback callback) {
+        SingleTideStationLoadParams params = new SingleTideStationLoadParams();
+        params.context = context;
+        params.name = name;
+        params.callback = callback;
+
+        new SingleTideStationLoadTask().execute(params);
     }
 
     public List<StationStub> getAllStations() {
@@ -255,6 +265,47 @@ public class TideStationLibrary {
         }
     };
 
+    private static class SingleTideStationLoadParams {
+        public SingleTideStationLoadedCallback callback;
+        public String name;
+        public Context context;
+    }
+
+    private static class SingleTideStationLoadResult {
+        public SingleTideStationLoadedCallback callback;
+        TideStation result;
+    }
+
+    private static class SingleTideStationLoadTask extends AsyncTask<SingleTideStationLoadParams, Void, SingleTideStationLoadResult> {
+
+        @Override
+        protected SingleTideStationLoadResult doInBackground(SingleTideStationLoadParams... params) {
+            SingleTideStationLoadResult result = new SingleTideStationLoadResult();
+            result.callback = params[0].callback;
+
+            try {
+                Log.i(TAG, "START TIDE STATION PARSE");
+                InputStream in = params[0].context.getResources().openRawResource(R.raw.stations);
+                XmlPullParser parser = Xml.newPullParser();
+                parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+                parser.setInput(in, null);
+                result.result = getSingleTideStation(parser, params[0].name);
+                Log.i(TAG, "END TIDE STATION PARSE");
+            } catch (Exception e) {
+                Log.e(TAG, "Loading tide stations failed.", e);
+            }
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(SingleTideStationLoadResult result) {
+            if (result.result != null) {
+                result.callback.loaded(result.result);
+            }
+        }
+    }
+
     private static List<StationStub> getTideStationStubs(XmlPullParser parser) throws XmlPullParserException, IOException {
         List<StationStub> stations = new ArrayList<StationStub>();
 
@@ -283,6 +334,29 @@ public class TideStationLibrary {
             }
         }
         return stations;
+    }
+
+    private static TideStation getSingleTideStation(XmlPullParser parser, String name) throws XmlPullParserException, IOException {
+
+        // Consume events up to the Stations tag
+        while (parser.next() != XmlPullParser.START_TAG && parser.getName() != "stations") { }
+
+        TideStation station = null;
+        while (parser.next() != XmlPullParser.END_DOCUMENT) {
+            if (parser.getEventType() == XmlPullParser.START_TAG) {
+                if (name.equals("station")) {
+                    if (parser.getAttributeValue(null, "name") == name) {
+                        station = new TideStation();
+                        station.setFullName(parser.getAttributeValue(null, "name"));
+                        // TODO!!!
+                    } else {
+                        skip(parser);
+                    }
+                }
+            }
+        }
+
+        return station;
     }
 
     private static void skip(XmlPullParser parser, int upLevels) throws XmlPullParserException, IOException {

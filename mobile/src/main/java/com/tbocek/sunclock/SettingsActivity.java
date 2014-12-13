@@ -42,6 +42,7 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.common.base.Joiner;
+import com.tideengine.TideStation;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -333,6 +334,14 @@ public class SettingsActivity extends PreferenceActivity {
                 @Override
                 public void stationSelected(TideStationLibrary.StationStub station) {
                     dlg.dismiss();
+                    TideStationLibrary.instance().loadSingleTideStation(
+                            getActivity().getApplicationContext(), station.getName(),
+                            new TideStationLibrary.SingleTideStationLoadedCallback() {
+                                @Override
+                                public void loaded(TideStation tideStation) {
+                                    // TODO!!!!
+                                }
+                            });
                 }
             });
 
