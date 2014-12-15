@@ -70,20 +70,15 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
         mDistance.addTextChangedListener(this);
         mFilter.addTextChangedListener(this);
 
-        mStationsList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mStationsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 TideStationLibrary.StationStub station = (TideStationLibrary.StationStub)
                         mStationsList.getAdapter().getItem(position);
                 if (mOnTideStationSelected != null) {
                     mOnTideStationSelected.stationSelected(station);
                 }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
     }

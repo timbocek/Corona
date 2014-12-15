@@ -286,13 +286,13 @@ public class TideStationLibrary {
             result.callback = params[0].callback;
 
             try {
-                Log.i(TAG, "START TIDE STATION PARSE");
+                Log.i(TAG, "START TIDE STATION SEARCH");
                 InputStream in = params[0].context.getResources().openRawResource(R.raw.stations);
                 XmlPullParser parser = Xml.newPullParser();
                 parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
                 parser.setInput(in, null);
                 result.result = getSingleTideStation(parser, params[0].name);
-                Log.i(TAG, "END TIDE STATION PARSE");
+                Log.i(TAG, "END TIDE STATION SEARCH");
             } catch (Exception e) {
                 Log.e(TAG, "Loading tide stations failed.", e);
             }
