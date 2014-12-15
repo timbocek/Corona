@@ -6,7 +6,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Xml;
 
+import com.tideengine.Harmonic;
 import com.tideengine.TideStation;
+import com.tideengine.TideUtilities;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -344,7 +346,7 @@ public class TideStationLibrary {
         TideStation station = null;
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             if (parser.getEventType() == XmlPullParser.START_TAG) {
-                if (name.equals("station")) {
+                if (parser.getName().equals("station")) {
                     if (parser.getAttributeValue(null, "name") == name) {
                         station = new TideStation();
                         station.setFullName(parser.getAttributeValue(null, "name"));
@@ -352,11 +354,31 @@ public class TideStationLibrary {
                     } else {
                         skip(parser);
                     }
+                } else if (station != null) {
+                    if (name.equals("position")) {
+                        station.setLatitude(Double.parseDouble(parser.getAttributeValue(null, "latitude")));
+                        station.setLongitude(Double.parseDouble(parser.getAttributeValue(null, "longitude")));
+                    } else if (name.equals("base-height")) {
+                        station.setBaseHeight(Double.parseDouble(parser.getAttributeValue(null, "value")));
+                        station.setUnit(parser.getAttributeValue(null, "unit"));
+                    } else if (name.equals("time-zone")) {
+                        station.setTimeOffset(parser.getAttributeValue(null, "offset"));
+                        station.setTimeZone(parser.getAttributeValue(null, "name"));
+                    } else if (name.equals("harmonic-coeff")) {
+                        String coeffName = parser.getAttributeValue(null, "name");
+                        double amplitude = Double.parseDouble(parser.getAttributeValue(null, "amplitude"));
+                        double epoch = Double.parseDouble(parser.getAttributeValue(null, "epoch")) * TideUtilities.COEFF_FOR_EPOCH;
+                        station.getHarmonics().add(new Harmonic(coeffName, amplitude, epoch));
+                    }
                 }
+            } else if (parser.getEventType() == XmlPullParser.END_TAG &&
+                    parser.getName().equals("station") &&
+                    station != null) {
+                return station;
             }
         }
 
-        return station;
+        return null;
     }
 
     private static void skip(XmlPullParser parser, int upLevels) throws XmlPullParserException, IOException {

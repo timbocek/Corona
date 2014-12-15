@@ -6,6 +6,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.Wearable;
+import com.tideengine.TideStation;
 
 /**
  * Created by tbocek on 11/11/14.
@@ -45,5 +46,9 @@ public class WearDataLayer {
         data.getDataMap().putString(WearDataDefs.OUTER_RING_DATA, outer_ring_data);
 
         Wearable.DataApi.putDataItem(mApiClient, data.asPutDataRequest());
+    }
+
+    public void sendTideStation(TideStation tideStation) {
+
     }
 }

@@ -339,7 +339,10 @@ public class SettingsActivity extends PreferenceActivity {
                             new TideStationLibrary.SingleTideStationLoadedCallback() {
                                 @Override
                                 public void loaded(TideStation tideStation) {
-                                    // TODO!!!!
+                                    if (tideStation != null) {
+                                        new WearDataLayer(getActivity().getApplicationContext()).sendTideStation(tideStation);
+                                        Toast.makeText(getActivity().getApplicationContext(), "Tide Station Sent", Toast.LENGTH_LONG);
+                                    }
                                 }
                             });
                 }
