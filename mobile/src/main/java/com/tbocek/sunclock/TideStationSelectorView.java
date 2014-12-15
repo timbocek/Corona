@@ -76,7 +76,9 @@ public class TideStationSelectorView extends LinearLayout implements TextWatcher
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 TideStationLibrary.StationStub station = (TideStationLibrary.StationStub)
                         mStationsList.getAdapter().getItem(position);
-                mOnTideStationSelected.stationSelected(station);
+                if (mOnTideStationSelected != null) {
+                    mOnTideStationSelected.stationSelected(station);
+                }
             }
 
             @Override
