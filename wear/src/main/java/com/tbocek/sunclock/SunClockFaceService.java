@@ -3,6 +3,7 @@ package com.tbocek.sunclock;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -88,6 +89,12 @@ public class SunClockFaceService extends CanvasWatchFaceService {
         /* a time object */
         Time mTime;
 
+        // Bitmap for caching the background, since it needs to be redrawn at most once a day.
+        Bitmap mBackground;
+
+        // Whether the background should be redrawn in the next draw loop.
+        boolean mBackgroundNeedsUpdate;
+
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -157,6 +164,12 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             mMoonPaintDimmed.setColor(HAND_COLOR_DIMMED);
             mMoonPaintDimmed.setStyle(Paint.Style.STROKE);
             mMoonPaintDimmed.setStrokeWidth(2.0f);
+
+            mWidth = holder.getSurfaceFrame().width();
+            mHeight = holder.getSurfaceFrame().height();
+
+            mBackground = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+            mBackgroundNeedsUpdate = true;
         }
 
         @Override
@@ -182,62 +195,25 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             Log.i(TAG, "DRAW!");
             DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
 
-            mWidth = bounds.width();
-            mHeight = bounds.height();
-
-            canvas.drawColor(Color.WHITE);
-
             int centerX = mWidth / 2;
             int centerY = mHeight / 2;
             int r = Math.min(mWidth, mHeight) / 2;
-
-            // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
-            // antialiasing on the day and night sections won't produce white line artifacts.
-            fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
-                    mSunriseSunsetHandPaint, canvas);
-            fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
-                    mSunriseSunsetHandPaint, canvas);
-
-            fillArc(fractionOfDay(mAstroDawnTime) - 0.01, fractionOfDay(mDawnTime),
-                    mAstroTwilightPaint, canvas);
-            fillArc(fractionOfDay(mDuskTime), Math.min(fractionOfDay(mAstroDuskTime) + .01, 1.0),
-                    mAstroTwilightPaint, canvas);
-
-            fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
-                    mDayPaint, canvas);
-            fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
-                    mNightPaint, canvas);
-
-            canvas.drawRect(0, 0, mWidth, mHeight, mVignettePaint);
-
-            // Draw dots on every hour
-            for (int i = 0; i < 24; ++i) {
-                Point dest = getPointOnCircle(((float)i) / 24, centerX, centerY,
-                        r - dpToPx(DOT_CENTER_EDGE_DISTANCE));
-                int dotRadius;
-                if (i % 6 == 0) {
-                    dotRadius = dpToPx(LARGE_DOT_RADIUS);
-                } else if (i % 2 == 0) {
-                    dotRadius = dpToPx(MEDIUM_DOT_RADIUS);
-                } else {
-                    dotRadius = dpToPx(SMALL_DOT_RADIUS);
-                }
-                dotRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dotRadius, dm);
-
-                canvas.drawCircle(dest.x, dest.y, dotRadius, mCirclePaint);
-            }
-
-            //Draw moonrise and moonset
-            drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime),
-                    r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, canvas);
-
-            // Draw tides
-            for (Pair<DateTime, DateTime> risingTide : findRisingTides()) {
-                drawArc(fractionOfDay(risingTide.first), fractionOfDay(risingTide.second),
-                        r - dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, canvas);
-            }
-
             int handLength =  r - dpToPx(DOT_CENTER_EDGE_DISTANCE);
+
+            if (mBackgroundNeedsUpdate) {
+                drawClockFaceBackground(new Canvas(mBackground));
+            }
+
+            // Copy the cached background to the clock face.
+            canvas.drawBitmap(mBackground, 0, 0, null);
+
+            // TODO: Test whether this behaves correctly for DST!
+            DateTime dateTime = new DateTime(mTime.toMillis(true));
+
+            drawHand(fractionOfDay(dateTime), centerX, centerY, (int)(handLength * 0.8),
+                    mHourHandPaint, canvas);
+            drawHand(fractionOfHour(dateTime), centerX, centerY, handLength,
+                    mMinuteHandPaint, canvas);
         }
 
         @Override
@@ -389,6 +365,61 @@ public class SunClockFaceService extends CanvasWatchFaceService {
         private int dpToPx(float dp) {
             DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
             return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, dm);
+        }
+
+        private void drawClockFaceBackground(Canvas canvas) {
+            DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
+
+            int centerX = mWidth / 2;
+            int centerY = mHeight / 2;
+            int r = Math.min(mWidth, mHeight) / 2;
+
+            // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
+            // antialiasing on the day and night sections won't produce white line artifacts.
+            fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
+                    mSunriseSunsetHandPaint, canvas);
+            fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
+                    mSunriseSunsetHandPaint, canvas);
+
+            fillArc(fractionOfDay(mAstroDawnTime) - 0.01, fractionOfDay(mDawnTime),
+                    mAstroTwilightPaint, canvas);
+            fillArc(fractionOfDay(mDuskTime), Math.min(fractionOfDay(mAstroDuskTime) + .01, 1.0),
+                    mAstroTwilightPaint, canvas);
+
+            fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
+                    mDayPaint, canvas);
+            fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
+                    mNightPaint, canvas);
+
+            canvas.drawRect(0, 0, mWidth, mHeight, mVignettePaint);
+
+            // Draw dots on every hour
+            for (int i = 0; i < 24; ++i) {
+                Point dest = getPointOnCircle(((float)i) / 24, centerX, centerY,
+                        r - dpToPx(DOT_CENTER_EDGE_DISTANCE));
+                int dotRadius;
+                if (i % 6 == 0) {
+                    dotRadius = dpToPx(LARGE_DOT_RADIUS);
+                } else if (i % 2 == 0) {
+                    dotRadius = dpToPx(MEDIUM_DOT_RADIUS);
+                } else {
+                    dotRadius = dpToPx(SMALL_DOT_RADIUS);
+                }
+                dotRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dotRadius, dm);
+
+                canvas.drawCircle(dest.x, dest.y, dotRadius, mCirclePaint);
+            }
+
+            //Draw moonrise and moonset
+            drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime),
+                    r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, canvas);
+
+            // Draw tides
+            for (Pair<DateTime, DateTime> risingTide : findRisingTides()) {
+                drawArc(fractionOfDay(risingTide.first), fractionOfDay(risingTide.second),
+                        r - dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, canvas);
+            }
+
         }
 
     }
