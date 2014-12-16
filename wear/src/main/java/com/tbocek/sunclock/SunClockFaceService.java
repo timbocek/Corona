@@ -23,10 +23,12 @@ import android.util.Pair;
 import android.util.TypedValue;
 import android.view.SurfaceHolder;
 
+import com.mhuss.AstroLib.AstroDate;
 import com.mhuss.AstroLib.Latitude;
 import com.mhuss.AstroLib.Longitude;
 import com.mhuss.AstroLib.ObsInfo;
 import com.mhuss.AstroLib.RiseSet;
+import com.mhuss.AstroLib.TimePair;
 import com.tideengine.TideStation;
 
 import org.joda.time.DateTime;
@@ -66,19 +68,6 @@ public class SunClockFaceService extends CanvasWatchFaceService {
     }
 
     private class Engine extends CanvasWatchFaceService.Engine {
-        private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
-        private DateTime mSunsetTime = new DateTime(2014, 1, 1, 19, 00);
-        private DateTime mDawnTime = new DateTime(2014, 1, 1, 4, 30);
-        private DateTime mDuskTime = new DateTime(2014, 1, 1, 19, 30);
-        private DateTime mAstroDawnTime =new DateTime(2014, 1, 1, 3, 00);
-        private DateTime mAstroDuskTime = new DateTime(2014, 1, 1, 21, 00);
-        private DateTime mMoonriseTime = new DateTime(2014, 1, 1, 12, 00);
-        private DateTime mMoonsetTime = new DateTime(2014, 1, 1, 23, 00);
-
-        private TideStation mTideStation;
-        private List<DateTime> mLowTides;
-        private List<DateTime> mHighTides;
-
         private Paint mHourHandPaint;
         private Paint mMinuteHandPaint;
         private Paint mSunriseSunsetHandPaint;
@@ -105,6 +94,9 @@ public class SunClockFaceService extends CanvasWatchFaceService {
         // Whether the background should be redrawn in the next draw loop.
         boolean mBackgroundNeedsUpdate;
 
+        // Tracks the timestamp of the last data update.
+        private long mLastDataUpdate;
+
         private boolean mAmbient;
         private boolean mBurnInProtection;
         private boolean mLowBitAmbient;
@@ -113,6 +105,7 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mTime.clear(intent.getStringExtra("time-zone"));
+                EventData.instance().setTimeZone(intent.getStringExtra("time-zone"));
                 mTime.setToNow();
                 mBackgroundNeedsUpdate = true;
                 invalidate();
@@ -207,8 +200,10 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             super.onTimeTick();
             int previousDate = mTime.monthDay;
             mTime.setToNow();
-            if (mTime.monthDay != previousDate) {
+            if (mTime.monthDay != previousDate ||
+                    mLastDataUpdate < EventData.instance().getLastUpdate()) {
                 mBackgroundNeedsUpdate = true;
+                mLastDataUpdate = EventData.instance().getLastUpdate();
             }
             invalidate();
         }
@@ -371,29 +366,6 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             }
         }
 
-        private List<Pair<DateTime, DateTime>> findRisingTides() {
-            List<Pair<DateTime, DateTime>> risingTides = new ArrayList<Pair<DateTime, DateTime>>();
-
-            if (mLowTides == null || mHighTides == null ||
-                    mLowTides.isEmpty() || mHighTides.isEmpty()) return risingTides;
-
-            int currentLow = 0;
-            int currentHigh = 0;
-            if (mLowTides.get(0).isAfter(mHighTides.get(0).toInstant())) {
-                currentHigh += 1;
-            }
-
-            while (currentLow < mLowTides.size() && currentHigh < mHighTides.size() &&
-                    mLowTides.get(currentLow).minusDays(1).isBefore(mLowTides.get(0)) &&
-                    mHighTides.get(currentHigh).minusDays(1).isBefore(mLowTides.get(0))) {
-                risingTides.add(new Pair<DateTime, DateTime>(
-                        mLowTides.get(currentLow), mHighTides.get(currentHigh)));
-
-                currentLow++;
-                currentHigh++;
-            }
-            return risingTides;
-        }
 
         private int dpToPx(float dp) {
             DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
@@ -402,6 +374,7 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
         private void drawClockFaceBackground(Canvas canvas) {
             DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
+            EventData dat = EventData.instance();
 
             int centerX = mWidth / 2;
             int centerY = mHeight / 2;
@@ -409,19 +382,22 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
             // Draw arcs for the dusk sections.  Make them slightly larger than need be so that the
             // antialiasing on the day and night sections won't produce white line artifacts.
-            fillArc(fractionOfDay(mDawnTime) - 0.01, fractionOfDay(mSunriseTime) + 0.01,
+            fillArc(fractionOfDay(dat.getDawnTime()) - 0.01,
+                    fractionOfDay(dat.getSunriseTime()) + 0.01,
                     mSunriseSunsetHandPaint, canvas);
-            fillArc(fractionOfDay(mSunsetTime) - 0.01, fractionOfDay(mDuskTime) + 0.01,
+            fillArc(fractionOfDay(dat.getSunsetTime()) - 0.01,
+                    fractionOfDay(dat.getDuskTime()) + 0.01,
                     mSunriseSunsetHandPaint, canvas);
 
-            fillArc(fractionOfDay(mAstroDawnTime) - 0.01, fractionOfDay(mDawnTime),
+            fillArc(fractionOfDay(dat.getAstroDawnTime()) - 0.01, fractionOfDay(dat.getDawnTime()),
                     mAstroTwilightPaint, canvas);
-            fillArc(fractionOfDay(mDuskTime), Math.min(fractionOfDay(mAstroDuskTime) + .01, 1.0),
+            fillArc(fractionOfDay(dat.getDuskTime()),
+                    Math.min(fractionOfDay(dat.getAstroDuskTime()) + .01, 1.0),
                     mAstroTwilightPaint, canvas);
 
-            fillArc(fractionOfDay(mSunriseTime), fractionOfDay(mSunsetTime),
+            fillArc(fractionOfDay(dat.getSunriseTime()), fractionOfDay(dat.getSunsetTime()),
                     mDayPaint, canvas);
-            fillArc(fractionOfDay(mAstroDuskTime), fractionOfDay(mAstroDawnTime),
+            fillArc(fractionOfDay(dat.getAstroDuskTime()), fractionOfDay(dat.getAstroDawnTime()),
                     mNightPaint, canvas);
 
             canvas.drawRect(0, 0, mWidth, mHeight, mVignettePaint);
@@ -444,60 +420,15 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             }
 
             //Draw moonrise and moonset
-            drawArc(fractionOfDay(mMoonriseTime), fractionOfDay(mMoonsetTime),
+            drawArc(fractionOfDay(dat.getMoonriseTime()), fractionOfDay(dat.getMoonsetTime()),
                     r - dpToPx(MOONRISE_EDGE_DISTANCE), mMoonPaint, canvas);
 
             // Draw tides
-            for (Pair<DateTime, DateTime> risingTide : findRisingTides()) {
+            for (Pair<DateTime, DateTime> risingTide : dat.findRisingTides()) {
                 drawArc(fractionOfDay(risingTide.first), fractionOfDay(risingTide.second),
                         r - dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, canvas);
             }
 
         }
-
-        private void resetSunriseAndSunsetTimes() {
-            ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG),
-                    currentTime.getZone().getOffset(currentTime.toInstant()) / 3600);
-
-            Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
-            Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,
-                    RiseSet.CIVIL_TWI);
-            Pair<DateTime, DateTime> astroDuskTimes =
-                    computeTimes(observerInfo, currentTime, RiseSet.ASTRONOMICAL_TWI);
-
-            mClockView.setHeld(true);
-
-            if (sunTimes.first != null) {
-                mClockView.setSunriseTimes(sunTimes.first, duskTimes.first, astroDuskTimes.first);
-            }
-
-            if (sunTimes.second != null) {
-                mClockView.setSunsetTimes(sunTimes.second, duskTimes.second, astroDuskTimes.second);
-            }
-
-            Pair<DateTime, DateTime> moonTimes = computeTimes(observerInfo, currentTime, RiseSet.MOON);
-
-            if (moonTimes.first != null && moonTimes.second != null) {
-                mClockView.setMoonriseTime(moonTimes.first);
-                mClockView.setMoonsetTime(moonTimes.second);
-            }
-
-            // Find the tides
-            ArrayList<DateTime> lowTides = new ArrayList<DateTime>();
-            ArrayList<DateTime> highTides = new ArrayList<DateTime>();
-            if (mTideComputer != null) {
-                for (TideComputer.TideExtreme tide : mTideComputer.getExtrema(currentTime, 36)) {
-                    if (tide.getType() == TideComputer.ExtremaType.HIGH_TIDE) {
-                        highTides.add(tide.getTime());
-                    } else {
-                        lowTides.add(tide.getTime());
-                    }
-                }
-                mClockView.setTides(lowTides, highTides);
-            }
-
-            mClockView.setHeld(false);
-        }
-
     }
 }

@@ -22,11 +22,8 @@ public class DataLayerListenerService extends WearableListenerService {
                 DataMap data = DataMap.fromByteArray(item.getData());
                 double latitude = data.getDouble(WearDataDefs.LATITUDE);
                 double longitude = data.getDouble(WearDataDefs.LONGITUDE);
+                EventData.instance().setLocation(latitude, longitude);
 
-                prefs.edit()
-                        .putFloat("lat", (float)latitude)
-                        .putFloat("long", (float)longitude)
-                        .commit();
             } else if (item.getUri().equals(WearDataDefs.FACE_CONFIGURATION)) {
 
             } else if (item.getUri().equals(WearDataDefs.TIDE_STATION)) {
