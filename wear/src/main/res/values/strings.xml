@@ -4,5 +4,6 @@
     <string name="app_name">SunClock</string>
     <string name="hello_round">Hello Round World!</string>
     <string name="hello_square">Hello Square World!</string>
+    <string name="clock_face_service_name">SunClockFaceService</string>
 
 </resources>

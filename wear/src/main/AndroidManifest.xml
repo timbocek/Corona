@@ -11,23 +11,31 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.DeviceDefault" >
-        <activity
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-            android:name=".ClockFaceActivity"
-            android:label="@string/app_name"
-            android:allowEmbedded="true" >
-            <meta-data android:name="com.google.android.clockwork.home.preview" android:resource="@drawable/ic_launcher" />
-            <!-- Intent filter to make the activity show up in the watchface choices -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="com.google.android.clockwork.home.category.HOME_BACKGROUND" />
-            </intent-filter>
-        </activity>
         <service android:name=".DataLayerListenerService">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
             </intent-filter>
         </service>
+        <service
+            android:name=".SunClockFaceService"
+            android:label="@string/clock_face_service_name"
+            android:allowEmbedded = "true"
+            android:taskAffinity=""
+            android:permission="android.permission.BIND_WALLPAPER">
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/watch_face" />
+            <meta-data
+                android:name="com.google.android.wearable.watchface.preview"
+                android:resource="@drawable/ic_launcher" />
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+                <category
+                    android:name=
+                        "com.google.android.wearable.watchface.category.WATCH_FACE" />
+            </intent-filter>
+
+         </service>
     </application>
 
 </manifest>

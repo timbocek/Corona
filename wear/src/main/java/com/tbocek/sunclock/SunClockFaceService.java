@@ -23,7 +23,14 @@ import android.util.Pair;
 import android.util.TypedValue;
 import android.view.SurfaceHolder;
 
+import com.mhuss.AstroLib.Latitude;
+import com.mhuss.AstroLib.Longitude;
+import com.mhuss.AstroLib.ObsInfo;
+import com.mhuss.AstroLib.RiseSet;
+import com.tideengine.TideStation;
+
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +75,7 @@ public class SunClockFaceService extends CanvasWatchFaceService {
         private DateTime mMoonriseTime = new DateTime(2014, 1, 1, 12, 00);
         private DateTime mMoonsetTime = new DateTime(2014, 1, 1, 23, 00);
 
+        private TideStation mTideStation;
         private List<DateTime> mLowTides;
         private List<DateTime> mHighTides;
 
@@ -97,11 +105,17 @@ public class SunClockFaceService extends CanvasWatchFaceService {
         // Whether the background should be redrawn in the next draw loop.
         boolean mBackgroundNeedsUpdate;
 
+        private boolean mAmbient;
+        private boolean mBurnInProtection;
+        private boolean mLowBitAmbient;
+
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mTime.clear(intent.getStringExtra("time-zone"));
                 mTime.setToNow();
+                mBackgroundNeedsUpdate = true;
+                invalidate();
             }
         };
 
@@ -181,17 +195,29 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
         @Override
         public void onPropertiesChanged(Bundle properties) {
-            /* get device features (burn-in, low-bit ambient) */
+            mBurnInProtection = properties.getBoolean(PROPERTY_BURN_IN_PROTECTION, false);
+            mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT);
+            if (mAmbient) {
+                mBackgroundNeedsUpdate = true;
+            }
         }
 
         @Override
         public void onTimeTick() {
-            /* the time changed */
+            super.onTimeTick();
+            int previousDate = mTime.monthDay;
+            mTime.setToNow();
+            if (mTime.monthDay != previousDate) {
+                mBackgroundNeedsUpdate = true;
+            }
+            invalidate();
         }
 
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
-            /* the wearable switched between modes */
+            mAmbient = inAmbientMode;
+            mBackgroundNeedsUpdate = true;
+            invalidate();
         }
 
         int mWidth = 0;
@@ -427,6 +453,50 @@ public class SunClockFaceService extends CanvasWatchFaceService {
                         r - dpToPx(TIDE_EDGE_DISTANCE), mMoonPaint, canvas);
             }
 
+        }
+
+        private void resetSunriseAndSunsetTimes() {
+            ObsInfo observerInfo = new ObsInfo(new Latitude(SEATTLE_LAT), new Longitude(SEATTLE_LONG),
+                    currentTime.getZone().getOffset(currentTime.toInstant()) / 3600);
+
+            Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
+            Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,
+                    RiseSet.CIVIL_TWI);
+            Pair<DateTime, DateTime> astroDuskTimes =
+                    computeTimes(observerInfo, currentTime, RiseSet.ASTRONOMICAL_TWI);
+
+            mClockView.setHeld(true);
+
+            if (sunTimes.first != null) {
+                mClockView.setSunriseTimes(sunTimes.first, duskTimes.first, astroDuskTimes.first);
+            }
+
+            if (sunTimes.second != null) {
+                mClockView.setSunsetTimes(sunTimes.second, duskTimes.second, astroDuskTimes.second);
+            }
+
+            Pair<DateTime, DateTime> moonTimes = computeTimes(observerInfo, currentTime, RiseSet.MOON);
+
+            if (moonTimes.first != null && moonTimes.second != null) {
+                mClockView.setMoonriseTime(moonTimes.first);
+                mClockView.setMoonsetTime(moonTimes.second);
+            }
+
+            // Find the tides
+            ArrayList<DateTime> lowTides = new ArrayList<DateTime>();
+            ArrayList<DateTime> highTides = new ArrayList<DateTime>();
+            if (mTideComputer != null) {
+                for (TideComputer.TideExtreme tide : mTideComputer.getExtrema(currentTime, 36)) {
+                    if (tide.getType() == TideComputer.ExtremaType.HIGH_TIDE) {
+                        highTides.add(tide.getTime());
+                    } else {
+                        lowTides.add(tide.getTime());
+                    }
+                }
+                mClockView.setTides(lowTides, highTides);
+            }
+
+            mClockView.setHeld(false);
         }
 
     }
