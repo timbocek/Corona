@@ -26,6 +26,7 @@ dependencies {
     compile project(":java-tide-engine")
     compile project(":common")
     compile 'com.google.android.gms:play-services-wearable:6.5.+'
+    compile 'com.google.android.gms:play-services-location:6.5.+'
     // You must install or update the Support Repository through the SDK manager to use this dependency.
     compile 'com.android.support:support-v4:21.+'
 }
