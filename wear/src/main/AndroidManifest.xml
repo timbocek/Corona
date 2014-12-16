@@ -28,6 +28,11 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview"
                 android:resource="@drawable/ic_launcher" />
+            <meta-data
+                android:name=
+                    "com.google.android.wearable.watchface.companionConfigurationAction"
+                android:value=
+                    "com.tbocek.sunclock.CONFIG" />
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
                 <category
