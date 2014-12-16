@@ -117,6 +117,9 @@ public class SunClockFaceService extends CanvasWatchFaceService {
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
 
+            mTime = new Time();
+            mTime.setToNow();
+
             mHourHandPaint = new Paint();
             mHourHandPaint.setColor(HAND_COLOR);
             mHourHandPaint.setStrokeWidth(4.0f);
@@ -175,15 +178,6 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             mMoonPaintDimmed.setStyle(Paint.Style.STROKE);
             mMoonPaintDimmed.setStrokeWidth(2.0f);
 
-            mWidth = holder.getSurfaceFrame().width();
-            mHeight = holder.getSurfaceFrame().height();
-
-            mVignettePaint = new Paint();
-            mVignettePaint.setShader(new RadialGradient(
-                    mWidth / 2, mHeight / 2, (float) (Math.max(mWidth/2, mHeight/2) * Math.sqrt(2)),
-                    Color.argb(0, 0, 0, 0), Color.argb(100, 0, 0, 0), Shader.TileMode.CLAMP));
-
-            mBackground = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
             mBackgroundNeedsUpdate = true;
 
             EventData.instance(SunClockFaceService.this).loadFromPreferences();
@@ -226,6 +220,8 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             Log.i(TAG, "DRAW!");
             DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
 
+            setUpDimensions(canvas.getWidth(), canvas.getHeight());
+
             int centerX = mWidth / 2;
             int centerY = mHeight / 2;
             int r = Math.min(mWidth, mHeight) / 2;
@@ -245,6 +241,23 @@ public class SunClockFaceService extends CanvasWatchFaceService {
                     mHourHandPaint, canvas);
             drawHand(fractionOfHour(dateTime), centerX, centerY, handLength,
                     mMinuteHandPaint, canvas);
+        }
+
+        private void setUpDimensions(int width, int height) {
+            mWidth = width;
+            mHeight = height;
+
+            if (mVignettePaint == null) {
+                mVignettePaint = new Paint();
+                mVignettePaint.setShader(new RadialGradient(
+                        mWidth / 2, mHeight / 2, (
+                        float) (Math.max(mWidth / 2, mHeight / 2) * Math.sqrt(2)),
+                        Color.argb(0, 0, 0, 0), Color.argb(100, 0, 0, 0), Shader.TileMode.CLAMP));
+            }
+
+            if (mBackground == null) {
+                mBackground = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+            }
         }
 
         @Override
