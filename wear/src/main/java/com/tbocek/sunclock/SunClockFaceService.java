@@ -10,8 +10,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.graphics.RadialGradient;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.os.Bundle;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.text.format.Time;
@@ -167,6 +169,11 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
             mWidth = holder.getSurfaceFrame().width();
             mHeight = holder.getSurfaceFrame().height();
+
+            mVignettePaint = new Paint();
+            mVignettePaint.setShader(new RadialGradient(
+                    mWidth / 2, mHeight / 2, (float) (Math.max(mWidth/2, mHeight/2) * Math.sqrt(2)),
+                    Color.argb(0, 0, 0, 0), Color.argb(100, 0, 0, 0), Shader.TileMode.CLAMP));
 
             mBackground = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
             mBackgroundNeedsUpdate = true;
