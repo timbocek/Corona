@@ -1,6 +1,9 @@
 package com.tbocek.sunclock;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Pair;
 
@@ -21,12 +24,19 @@ import java.util.List;
  * Created by tbocek on 12/16/14.
  */
 public class EventData {
-    public static EventData instance() {
+    public static EventData instance(Context context) {
+        if (sInstance == null)
+            sInstance = new EventData(context);
         return sInstance;
     }
 
     private static EventData sInstance;
-    private EventData() {}
+
+    private EventData(Context context) {
+        mContext = context.getApplicationContext();
+    }
+
+    private Context mContext;
 
     private DateTime mSunriseTime = new DateTime(2014, 1, 1, 5, 00);
     private DateTime mSunsetTime = new DateTime(2014, 1, 1, 19, 00);
@@ -56,6 +66,13 @@ public class EventData {
     public void setLocation(double latitude, double longitude) {
         mLatitude = new Latitude(latitude);
         mLongitude = new Longitude(longitude);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        prefs.edit()
+                .putFloat("latitude", (float) latitude)
+                .putFloat("longitude", (float) longitude)
+                .commit();
+
         resetSunriseAndSunsetTimes();
         mLastUpdate = new Time().toMillis(false);
     }
@@ -66,6 +83,15 @@ public class EventData {
 
     public void setTimeZone(String timeZone) {
         mTimeZone = timeZone;
+        resetSunriseAndSunsetTimes();
+        mLastUpdate = new Time().toMillis(false);
+    }
+
+    public void loadFromPreferences() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        mLatitude = new Latitude(prefs.getFloat("latitude", 0));
+        mLongitude = new Longitude(prefs.getFloat("longitude", 0));
+
         resetSunriseAndSunsetTimes();
         mLastUpdate = new Time().toMillis(false);
     }
@@ -198,6 +224,5 @@ public class EventData {
                 t.getYear(), t.getMonthOfYear(), t.getDayOfMonth(), hours, minutes,
                 secondsInMinute).plusMillis(t.getZone().getOffset(t.toInstant()));
     }
-
 
 }

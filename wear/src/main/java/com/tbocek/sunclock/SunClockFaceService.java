@@ -1,5 +1,6 @@
 package com.tbocek.sunclock;
 
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -105,7 +106,7 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mTime.clear(intent.getStringExtra("time-zone"));
-                EventData.instance().setTimeZone(intent.getStringExtra("time-zone"));
+                EventData.instance(SunClockFaceService.this).setTimeZone(intent.getStringExtra("time-zone"));
                 mTime.setToNow();
                 mBackgroundNeedsUpdate = true;
                 invalidate();
@@ -184,6 +185,8 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
             mBackground = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
             mBackgroundNeedsUpdate = true;
+
+            EventData.instance(SunClockFaceService.this).loadFromPreferences();
         }
 
         @Override
@@ -201,9 +204,9 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             int previousDate = mTime.monthDay;
             mTime.setToNow();
             if (mTime.monthDay != previousDate ||
-                    mLastDataUpdate < EventData.instance().getLastUpdate()) {
+                    mLastDataUpdate < EventData.instance(SunClockFaceService.this).getLastUpdate()) {
                 mBackgroundNeedsUpdate = true;
-                mLastDataUpdate = EventData.instance().getLastUpdate();
+                mLastDataUpdate = EventData.instance(SunClockFaceService.this).getLastUpdate();
             }
             invalidate();
         }
@@ -374,7 +377,7 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
         private void drawClockFaceBackground(Canvas canvas) {
             DisplayMetrics dm = SunClockFaceService.this.getResources().getDisplayMetrics();
-            EventData dat = EventData.instance();
+            EventData dat = EventData.instance(SunClockFaceService.this);
 
             int centerX = mWidth / 2;
             int centerY = mHeight / 2;
