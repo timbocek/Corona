@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -37,6 +38,7 @@ import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by tbocek on 12/15/14.
@@ -106,12 +108,14 @@ public class SunClockFaceService extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 mTime.clear(intent.getStringExtra("time-zone"));
-                EventData.instance(SunClockFaceService.this).setTimeZone(intent.getStringExtra("time-zone"));
+                EventData.instance(SunClockFaceService.this).setTimeZone(
+                        DateTimeZone.forID(intent.getStringExtra("time-zone")));
                 mTime.setToNow();
                 mBackgroundNeedsUpdate = true;
                 invalidate();
             }
         };
+        private boolean mRegisteredTimeZoneReceiver;
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -180,6 +184,7 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
             mBackgroundNeedsUpdate = true;
 
+            EventData.instance(SunClockFaceService.this).setTimeZone(DateTimeZone.getDefault());
             EventData.instance(SunClockFaceService.this).loadFromPreferences();
         }
 
@@ -262,7 +267,28 @@ public class SunClockFaceService extends CanvasWatchFaceService {
 
         @Override
         public void onVisibilityChanged(boolean visible) {
-            /* the watch face became visible or invisible */
+            if (visible) {
+                registerReceiver();
+            } else {
+                unregisterReceiver();
+            }
+        }
+
+        private void registerReceiver() {
+            if (mRegisteredTimeZoneReceiver) {
+                return;
+            }
+            mRegisteredTimeZoneReceiver = true;
+            IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
+            SunClockFaceService.this.registerReceiver(mTimeZoneReceiver, filter);
+        }
+
+        private void unregisterReceiver() {
+            if (!mRegisteredTimeZoneReceiver) {
+                return;
+            }
+            mRegisteredTimeZoneReceiver = false;
+            SunClockFaceService.this.unregisterReceiver(mTimeZoneReceiver);
         }
 
 

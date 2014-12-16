@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
+import android.util.Log;
 import android.util.Pair;
 
 import com.mhuss.AstroLib.AstroDate;
@@ -16,6 +17,7 @@ import com.mhuss.AstroLib.TimePair;
 import com.tideengine.TideStation;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,8 @@ import java.util.List;
  * Created by tbocek on 12/16/14.
  */
 public class EventData {
+    private static final String TAG = "EventData";
+
     public static EventData instance(Context context) {
         if (sInstance == null)
             sInstance = new EventData(context);
@@ -31,6 +35,10 @@ public class EventData {
     }
 
     private static EventData sInstance;
+
+    // Default to Seattle, WA
+    private static final float DEFAULT_LAT_FOR_TESTING = 47.61f;
+    private static final float DEFAULT_LONG_FOR_TESTING = -122.33f;
 
     private EventData(Context context) {
         mContext = context.getApplicationContext();
@@ -57,7 +65,7 @@ public class EventData {
 
     private long mLastUpdate = 0;
 
-    private String mTimeZone;
+    private DateTimeZone mTimeZone;
 
     public long getLastUpdate() {
         return mLastUpdate;
@@ -81,7 +89,8 @@ public class EventData {
         mLastUpdate = new Time().toMillis(false);
     }
 
-    public void setTimeZone(String timeZone) {
+    public void setTimeZone(DateTimeZone timeZone) {
+        Log.i(TAG, "Time Zone = " + timeZone.getID());
         mTimeZone = timeZone;
         resetSunriseAndSunsetTimes();
         mLastUpdate = new Time().toMillis(false);
@@ -89,8 +98,8 @@ public class EventData {
 
     public void loadFromPreferences() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-        mLatitude = new Latitude(prefs.getFloat("latitude", 0));
-        mLongitude = new Longitude(prefs.getFloat("longitude", 0));
+        mLatitude = new Latitude(prefs.getFloat("latitude", DEFAULT_LAT_FOR_TESTING));
+        mLongitude = new Longitude(prefs.getFloat("longitude", DEFAULT_LONG_FOR_TESTING));
 
         resetSunriseAndSunsetTimes();
         mLastUpdate = new Time().toMillis(false);
@@ -162,23 +171,29 @@ public class EventData {
     }
 
     private void resetSunriseAndSunsetTimes() {
-        DateTime currentTime = new DateTime(mTimeZone);
+        if (mTimeZone == null || mLatitude == null || mLongitude == null) return;
+
+        DateTime currentTime = DateTime.now(mTimeZone);
         ObsInfo observerInfo = new ObsInfo(mLatitude, mLongitude,
                 currentTime.getZone().getOffset(currentTime.toInstant()) / 3600);
 
         Pair<DateTime, DateTime> sunTimes = computeTimes(observerInfo, currentTime, RiseSet.SUN);
         mSunriseTime = sunTimes.first;
         mSunsetTime = sunTimes.second;
+        Log.i(TAG, String.format("Sunrise=%s ; Sunset=%s",
+                mSunriseTime.toString(), mSunsetTime.toString()));
 
         Pair<DateTime, DateTime> duskTimes = computeTimes(observerInfo, currentTime,
                 RiseSet.CIVIL_TWI);
-        mDawnTime = sunTimes.first;
-        mDuskTime = sunTimes.second;
+        mDawnTime = duskTimes.first;
+        mDuskTime = duskTimes.second;
+        Log.i(TAG, String.format("Dawn=%s ; Dusk=%s",
+                mDawnTime.toString(), mDuskTime.toString()));
 
         Pair<DateTime, DateTime> astroDuskTimes =
                 computeTimes(observerInfo, currentTime, RiseSet.ASTRONOMICAL_TWI);
-        mAstroDawnTime = sunTimes.first;
-        mAstroDuskTime = sunTimes.second;
+        mAstroDawnTime = astroDuskTimes.first;
+        mAstroDuskTime = astroDuskTimes.second;
 
         Pair<DateTime, DateTime> moonTimes = computeTimes(observerInfo, currentTime, RiseSet.MOON);
         mMoonriseTime = moonTimes.first;
