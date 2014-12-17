@@ -1,18 +1,25 @@
 package com.tbocek.sunclock;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.tideengine.TideStation;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 /**
  * Created by tbocek on 11/11/14.
  */
 public class WearDataLayer {
     private static final boolean DEBUG_TOASTS = true;
+    private static final String TAG = "WearDataLayer";
 
     private GoogleApiClient mApiClient;
     private Context mContext;
@@ -49,6 +56,15 @@ public class WearDataLayer {
     }
 
     public void sendTideStation(TideStation tideStation) {
-
+        try {
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            ObjectOutputStream so = new ObjectOutputStream(bo);
+            so.writeObject(tideStation);
+            so.flush();
+            PutDataRequest request = PutDataRequest.create(WearDataDefs.TIDE_STATION);
+            request.setData(bo.toByteArray());
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+        }
     }
 }
