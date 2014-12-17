@@ -57,12 +57,9 @@ public class WearDataLayer {
 
     public void sendTideStation(TideStation tideStation) {
         try {
-            ByteArrayOutputStream bo = new ByteArrayOutputStream();
-            ObjectOutputStream so = new ObjectOutputStream(bo);
-            so.writeObject(tideStation);
-            so.flush();
+
             PutDataRequest request = PutDataRequest.create(WearDataDefs.TIDE_STATION);
-            request.setData(bo.toByteArray());
+            request.setData(TideStation.serialize(tideStation));
         } catch (IOException e) {
             Log.e(TAG, e.toString());
         }

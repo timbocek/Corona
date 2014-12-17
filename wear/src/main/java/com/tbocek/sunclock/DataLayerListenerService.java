@@ -39,10 +39,7 @@ public class DataLayerListenerService extends WearableListenerService {
             } else if (item.getUri().equals(WearDataDefs.TIDE_STATION)) {
                 try {
                     byte b[] = item.getData();
-                    ByteArrayInputStream bi = new ByteArrayInputStream(b);
-                    ObjectInputStream si = new ObjectInputStream(bi);
-                    TideStation station = (TideStation) si.readObject();
-                    EventData.instance(this).setTideStation(station);
+                    EventData.instance(this).setTideStation(TideStation.deserialize(b));
                 } catch (Exception e) {
                     Log.e(TAG, e.toString());
                 }

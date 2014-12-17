@@ -1,5 +1,10 @@
 package com.tideengine;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import java.util.ArrayList;
@@ -140,4 +145,18 @@ public class TideStation implements Serializable
   {
     return this.getFullName();
   }
+
+    public static byte[] serialize(TideStation ts) throws IOException {
+        ByteArrayOutputStream bo = new ByteArrayOutputStream();
+        ObjectOutputStream so = new ObjectOutputStream(bo);
+        so.writeObject(ts);
+        so.flush();
+        return bo.toByteArray();
+    }
+
+    public static TideStation deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bi = new ByteArrayInputStream(bytes);
+        ObjectInputStream si = new ObjectInputStream(bi);
+        return (TideStation) si.readObject();
+    }
 }

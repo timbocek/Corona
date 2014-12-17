@@ -102,6 +102,14 @@ public class EventData {
     }
 
     public void setTideStation(TideStation tideStation) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        try {
+            prefs.edit().putString("tide-station", new String(TideStation.serialize(tideStation)))
+                    .commit();
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+        }
+        mTideComputer = new TideComputer(tideStation);
         mLastUpdate = new Time().toMillis(false);
     }
 
@@ -116,6 +124,14 @@ public class EventData {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         mLatitude = new Latitude(prefs.getFloat("latitude", DEFAULT_LAT_FOR_TESTING));
         mLongitude = new Longitude(prefs.getFloat("longitude", DEFAULT_LONG_FOR_TESTING));
+        try {
+            mTideComputer = new TideComputer(
+                    TideStation.deserialize(prefs.getString("tide-station", "").getBytes()));
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+        } catch (ClassNotFoundException e) {
+            Log.e(TAG, e.toString());
+        }
 
         resetSunriseAndSunsetTimes();
         mLastUpdate = new Time().toMillis(false);
