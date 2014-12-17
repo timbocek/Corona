@@ -35,14 +35,15 @@ public class BackEndTideComputer
     return constituentsObject;
   }
   
-  public static void connect() throws Exception
+  public static void connect(InputStream constituentsXml) throws Exception
   {
     long before = 0L, after = 0L;
     BackEndXMLTideComputer.setVerbose(verbose);
     if (verbose)
       before = System.currentTimeMillis();
-    constituentsObject = BackEndXMLTideComputer.buildConstituents(); // Uses SAX
-    stationsObject = BackEndXMLTideComputer.getTideStations();       // Uses SAX
+    constituentsObject = BackEndXMLTideComputer.buildConstituents(constituentsXml); // Uses SAX
+    // NOTE: Tide station loading has been removed here.  I am using a custom implementation in the
+    // mobile part of the app, so that I don't need to load the tide station list on the watch!
     if (verbose)
     {
       after = System.currentTimeMillis();

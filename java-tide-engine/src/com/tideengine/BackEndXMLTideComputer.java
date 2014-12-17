@@ -1,5 +1,6 @@
 package com.tideengine;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,14 +24,14 @@ public class BackEndXMLTideComputer
 
   private static boolean verbose  = false;
     
-  public static Constituents buildConstituents() throws Exception
+  public static Constituents buildConstituents(InputStream xml) throws Exception
   {
     SpeedConstituentFinder scf = new SpeedConstituentFinder();
     try
     {
       SAXParserFactory factory = SAXParserFactory.newInstance();
       SAXParser saxParser = factory.newSAXParser();      
-      InputSource is = BackEndTideComputer.getZipInputSource(ARCHIVE_STREAM, CONSTITUENTS_ENTRY);
+      InputSource is = new InputSource(xml);
       saxParser.parse(is, scf);       
     }
     catch (Exception ex)

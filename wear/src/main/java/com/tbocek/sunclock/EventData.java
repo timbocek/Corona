@@ -14,11 +14,14 @@ import com.mhuss.AstroLib.Longitude;
 import com.mhuss.AstroLib.ObsInfo;
 import com.mhuss.AstroLib.RiseSet;
 import com.mhuss.AstroLib.TimePair;
+import com.tideengine.BackEndTideComputer;
 import com.tideengine.TideStation;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +45,19 @@ public class EventData {
 
     private EventData(Context context) {
         mContext = context.getApplicationContext();
+        // TODO: Make the following asynchronous
+        InputStream is = context.getResources().openRawResource(R.raw.constituents);
+        try {
+            BackEndTideComputer.connect(is);
+        } catch (Exception e) {
+            Log.e(TAG, e.toString());
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                Log.e(TAG, e.toString());
+            }
+        }
     }
 
     private Context mContext;
